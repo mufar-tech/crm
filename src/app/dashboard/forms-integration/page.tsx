@@ -66,9 +66,9 @@ export default function FormsIntegrationPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight text-gray-900">Mufar Forms Integration</h1>
             <Badge variant="success" className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1">
               <CheckCircle2 className="h-3 w-3" />
@@ -77,13 +77,13 @@ export default function FormsIntegrationPage() {
           </div>
           <p className="text-sm text-gray-500 mt-1">Seamlessly connect Mufar Forms with your CRM pipeline</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" className="gap-2">
-            <Settings className="h-4 w-4" />
+            <Settings className="h-4 w-4 shrink-0" />
             Configure Integration
           </Button>
           <Button variant="premium" className="gap-2">
-            <ExternalLink className="h-4 w-4" />
+            <ExternalLink className="h-4 w-4 shrink-0" />
             View Mufar Forms
           </Button>
         </div>
@@ -91,9 +91,9 @@ export default function FormsIntegrationPage() {
 
       <Card className="bg-gradient-to-r from-blue-50 via-purple-50 to-rose-50 border-0">
         <CardContent className="p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-center sm:justify-between gap-4">
             {flowSteps.map((step, idx) => (
-              <div key={step.label} className="flex items-center gap-3 flex-1">
+              <div key={step.label} className="flex items-center gap-3 flex-1 min-w-[160px]">
                 <div className="flex items-center gap-3">
                   <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", step.bg)}>
                     <step.icon className={cn("h-5 w-5", step.color)} />
@@ -120,7 +120,7 @@ export default function FormsIntegrationPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {statsCards.map((stat) => (
           <Card key={stat.label}>
             <CardContent className="p-4 flex items-center gap-4">
@@ -141,20 +141,20 @@ export default function FormsIntegrationPage() {
 
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <CardTitle className="text-base font-semibold">Form Submissions Overview</CardTitle>
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder="Search forms..."
-                className="pl-9 w-64 h-9"
+                className="pl-9 w-full sm:w-64 h-9"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>

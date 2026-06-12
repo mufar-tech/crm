@@ -156,7 +156,7 @@ export default function OpportunitiesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Opportunities</h1>
           <p className="text-sm text-gray-500 mt-1">Manage and track your sales opportunities</p>
@@ -167,7 +167,7 @@ export default function OpportunitiesPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
             <div className="rounded-lg bg-blue-50 p-2.5">
@@ -203,8 +203,8 @@ export default function OpportunitiesPage() {
         </Card>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="relative w-full sm:flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Search opportunities..."
@@ -214,7 +214,7 @@ export default function OpportunitiesPage() {
           />
         </div>
         <Select value={stageFilter} onValueChange={setStageFilter}>
-          <SelectTrigger className="w-36">
+          <SelectTrigger className="w-full sm:w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -224,7 +224,7 @@ export default function OpportunitiesPage() {
           </SelectContent>
         </Select>
         <Select value={ownerFilter} onValueChange={setOwnerFilter}>
-          <SelectTrigger className="w-36">
+          <SelectTrigger className="w-full sm:w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -237,7 +237,7 @@ export default function OpportunitiesPage() {
 
       <Card>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table className="min-w-[700px]">
             <TableHeader>
               <TableRow>
                 <TableHead className="cursor-pointer" onClick={() => toggleSort("name")}>
@@ -319,12 +319,12 @@ export default function OpportunitiesPage() {
                 ))
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="w-[95vw] sm:w-full sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Add Opportunity</DialogTitle>
             <DialogDescription>Create a new sales opportunity</DialogDescription>

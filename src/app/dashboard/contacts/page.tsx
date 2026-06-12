@@ -112,7 +112,7 @@ export default function ContactsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Contacts</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your contact relationships</p>
@@ -126,7 +126,7 @@ export default function ContactsPage() {
       <Card>
         <CardHeader className="pb-3">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative flex-1 max-w-md">
+            <div className="relative w-full sm:flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search contacts..."
@@ -137,7 +137,7 @@ export default function ContactsPage() {
             </div>
             <div className="flex items-center gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-full sm:w-[140px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -169,7 +169,7 @@ export default function ContactsPage() {
               )}
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow>
                   <TableHead className="pl-6">Name</TableHead>
@@ -250,13 +250,13 @@ export default function ContactsPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="w-[95vw] sm:w-full sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Add Contact</DialogTitle>
             <DialogDescription>Add a new contact to your CRM.</DialogDescription>

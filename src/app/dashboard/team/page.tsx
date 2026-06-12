@@ -128,7 +128,7 @@ export default function TeamPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Team</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your team members and roles</p>
@@ -139,7 +139,7 @@ export default function TeamPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -192,7 +192,7 @@ export default function TeamPage() {
               </Button>
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow>
                   <TableHead className="pl-6">Name</TableHead>
@@ -261,13 +261,13 @@ export default function TeamPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>
 
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="w-[95vw] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Invite Team Member</DialogTitle>
             <DialogDescription>Send an invitation to join your CRM workspace.</DialogDescription>
@@ -331,7 +331,7 @@ export default function TeamPage() {
       </Dialog>
 
       <Dialog open={!!editRole} onOpenChange={(open) => !open && setEditRole(null)}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="w-[95vw] sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Edit Role</DialogTitle>
             <DialogDescription>Change role for {editRole?.name}.</DialogDescription>

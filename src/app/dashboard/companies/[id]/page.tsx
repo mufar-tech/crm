@@ -112,8 +112,8 @@ export default function CompanyDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild className="h-9 w-9">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <Button variant="ghost" size="icon" asChild className="h-9 w-9 shrink-0">
           <Link href="/companies">
             <ArrowLeft className="h-4 w-4" />
           </Link>
@@ -133,7 +133,7 @@ export default function CompanyDetailPage() {
                 {getInitials(company.name)}
               </div>
               <div className="pb-1">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-xl font-semibold text-gray-900">{company.name}</h2>
                   <Badge variant="secondary" className="font-normal">
                     {company.industry}
@@ -151,7 +151,7 @@ export default function CompanyDetailPage() {
       </Card>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
+        <TabsList className="w-full overflow-x-auto flex-nowrap">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="contacts">Contacts ({companyContacts.length})</TabsTrigger>
           <TabsTrigger value="opportunities">Opportunities ({companyOpportunities.length})</TabsTrigger>
@@ -250,7 +250,7 @@ export default function CompanyDetailPage() {
                 Contacts at {company.name}
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-0 overflow-x-auto">
               {companyContacts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <Users className="h-8 w-8 text-gray-300 mb-2" />
@@ -305,7 +305,7 @@ export default function CompanyDetailPage() {
                 Opportunities at {company.name}
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-0 overflow-x-auto">
               {companyOpportunities.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <Target className="h-8 w-8 text-gray-300 mb-2" />

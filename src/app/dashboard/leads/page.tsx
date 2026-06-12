@@ -128,7 +128,7 @@ export default function LeadsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Leads</h1>
           <p className="text-sm text-gray-500 mt-1">Manage and track your leads</p>
@@ -140,7 +140,7 @@ export default function LeadsPage() {
               Add Lead
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-xl">
+          <DialogContent className="w-[95vw] sm:w-full sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Add New Lead</DialogTitle>
               <DialogDescription>Fill in the lead details below.</DialogDescription>
@@ -278,8 +278,8 @@ export default function LeadsPage() {
 
       <Card>
         <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1">
+          <div className="flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="relative w-full sm:flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder="Search leads by name, company or email..."
@@ -289,7 +289,7 @@ export default function LeadsPage() {
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -300,7 +300,7 @@ export default function LeadsPage() {
               </SelectContent>
             </Select>
             <Select value={sourceFilter} onValueChange={setSourceFilter}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue placeholder="Source" />
               </SelectTrigger>
               <SelectContent>
@@ -328,7 +328,7 @@ export default function LeadsPage() {
 
       <Card>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table className="min-w-[700px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
@@ -400,7 +400,7 @@ export default function LeadsPage() {
                 ))
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
 

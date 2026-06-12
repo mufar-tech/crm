@@ -97,15 +97,15 @@ export default function OpportunityDetailPage() {
         </Link>
       </div>
 
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row items-start gap-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-semibold tracking-tight text-gray-900">{opportunity.name}</h1>
             <Badge className={getStatusColor(opportunity.stage)} variant="secondary">{opportunity.stage}</Badge>
           </div>
           <p className="text-sm text-gray-500">{opportunity.customer}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="premium"
             className="gap-2"
@@ -118,7 +118,7 @@ export default function OpportunityDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
             <div className="rounded-lg bg-blue-50 p-2.5">
@@ -166,23 +166,23 @@ export default function OpportunityDetailPage() {
       </div>
 
       <Tabs defaultValue="overview">
-        <TabsList>
+        <TabsList className="w-full overflow-x-auto flex-nowrap">
           <TabsTrigger value="overview" className="gap-2">
-            <FileText className="h-4 w-4" />
+            <FileText className="h-4 w-4 shrink-0" />
             Overview
           </TabsTrigger>
           <TabsTrigger value="activity" className="gap-2">
-            <ActivityIcon className="h-4 w-4" />
+            <ActivityIcon className="h-4 w-4 shrink-0" />
             Activity
           </TabsTrigger>
           <TabsTrigger value="notes" className="gap-2">
-            <MessageSquare className="h-4 w-4" />
+            <MessageSquare className="h-4 w-4 shrink-0" />
             Notes
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 mt-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-gray-500">Deal Information</CardTitle>

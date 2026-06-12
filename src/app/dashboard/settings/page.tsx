@@ -116,7 +116,7 @@ function ProfileTab() {
           <CardDescription>Update your personal details and public profile</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="relative group cursor-pointer">
               <Avatar className="h-20 w-20 ring-2 ring-gray-100">
                 <AvatarFallback className="text-lg">{getInitials(name)}</AvatarFallback>
@@ -132,7 +132,7 @@ function ProfileTab() {
             </div>
           </div>
           <Separator />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Full Name</Label>
               <Input value={name} onChange={(e) => setName(e.target.value)} />
@@ -191,7 +191,7 @@ function CRMPreferencesTab() {
           <CardDescription>Configure your default CRM preferences</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Default Lead Status</Label>
               <Select defaultValue="New">
@@ -289,7 +289,7 @@ function LeadSettingsTab() {
           <CardDescription>Manage how leads are processed and assigned</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div>
               <p className="text-sm font-medium text-gray-900">Auto-assign leads</p>
               <p className="text-sm text-gray-500">Automatically assign new leads to team members</p>
@@ -297,7 +297,7 @@ function LeadSettingsTab() {
             <Switch checked={autoAssign} onCheckedChange={setAutoAssign} />
           </div>
           <Separator />
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div>
               <p className="text-sm font-medium text-gray-900">Duplicate detection</p>
               <p className="text-sm text-gray-500">Automatically detect and flag duplicate leads</p>
@@ -426,7 +426,7 @@ function SecurityTab() {
           <CardDescription>Add an extra layer of security to your account</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div>
               <p className="text-sm font-medium text-gray-900">Enable 2FA</p>
               <p className="text-sm text-gray-500">Use authenticator app for additional security</p>
@@ -560,11 +560,12 @@ function APIKeysTab() {
           Generate New Key
         </Button>
       </div>
-      <Card>
-        <CardContent className="p-0">
-          <div className="divide-y divide-gray-100">
-            {keys.map((key) => (
-              <div key={key.id} className="flex items-center justify-between p-4">
+      <div className="overflow-x-auto">
+        <Card>
+          <CardContent className="p-0">
+            <div className="divide-y divide-gray-100 min-w-[500px]">
+              {keys.map((key) => (
+                <div key={key.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-gray-900">{key.name}</p>
@@ -596,6 +597,7 @@ function APIKeysTab() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }
@@ -603,7 +605,7 @@ function APIKeysTab() {
 function IntegrationsTab() {
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {integrationCategories.slice(0, 4).map((cat) => {
           const count = mockIntegrations.filter((i) => i.category === cat.name).length
           const connected = mockIntegrations.filter((i) => i.category === cat.name && i.connected).length

@@ -158,7 +158,7 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -228,8 +228,8 @@ export default function ReportsPage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <Card className="col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="col-span-1 md:col-span-2">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-blue-600" />
@@ -237,7 +237,7 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
+                <div className="h-[200px] sm:h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={mockRevenueData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -280,7 +280,7 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[200px]">
+                <div className="h-[200px] sm:h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -315,7 +315,7 @@ export default function ReportsPage() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -324,7 +324,7 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[250px]">
+                <div className="h-[200px] sm:h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={mockConversionData} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
@@ -338,12 +338,12 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
 
-            <Card className="col-span-2">
+            <Card className="col-span-1 md:col-span-2">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold">Key Metrics Summary</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {mockDashboardKPIs.slice(0, 6).map((kpi) => (
                     <div key={kpi.label} className="flex items-center justify-between rounded-lg border border-gray-100 px-4 py-3">
                       <div>
@@ -369,13 +369,13 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="lead-sources" className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold">Lead Source Distribution</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
+                <div className="h-[200px] sm:h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -405,7 +405,7 @@ export default function ReportsPage() {
                 <CardTitle className="text-base font-semibold">Source Conversion Rates</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
+                <div className="h-[200px] sm:h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={mockLeadSourceData} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
@@ -472,7 +472,7 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="conversion" className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -481,7 +481,7 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
+                <div className="h-[200px] sm:h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={mockConversionData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
@@ -503,7 +503,7 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
+                <div className="h-[200px] sm:h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={mockConversionData}>
                       <defs>
@@ -561,7 +561,7 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="revenue" className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -570,7 +570,7 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
+                <div className="h-[200px] sm:h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={mockRevenueData}>
                       <defs>
@@ -600,7 +600,7 @@ export default function ReportsPage() {
                 <CardTitle className="text-base font-semibold">Revenue by Source</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
+                <div className="h-[200px] sm:h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -722,13 +722,13 @@ export default function ReportsPage() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold">Deals by Team Member</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[280px]">
+                <div className="h-[200px] sm:h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={teamPerformance} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
@@ -747,7 +747,7 @@ export default function ReportsPage() {
                 <CardTitle className="text-base font-semibold">Revenue by Team Member</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[280px]">
+                <div className="h-[200px] sm:h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={teamPerformance} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
@@ -770,7 +770,7 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="pipeline" className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -779,7 +779,7 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
+                <div className="h-[200px] sm:h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={pipelineData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
@@ -806,7 +806,7 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
+                <div className="h-[200px] sm:h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={forecastData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />

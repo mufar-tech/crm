@@ -105,19 +105,19 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Executive Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">Track your business performance</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         {mockDashboardKPIs.map((kpi, index) => {
           const Icon = kpiIcons[index]
           return (
             <Card key={kpi.label} className="card-hover">
-              <CardContent className="p-5">
+              <CardContent className="p-4 sm:p-5">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm text-gray-500 font-medium">{kpi.label}</span>
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
@@ -125,7 +125,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="flex items-end justify-between">
-                  <span className="text-2xl font-bold text-gray-900">{kpi.value}</span>
+                  <span className="text-xl sm:text-2xl font-bold text-gray-900">{kpi.value}</span>
                   <div className={`flex items-center gap-0.5 text-xs font-medium ${kpi.changeType === "increase" ? "text-emerald-600" : "text-red-600"}`}>
                     {kpi.changeType === "increase" ? (
                       <ArrowUpRight className="h-3.5 w-3.5" />
@@ -141,13 +141,13 @@ export default function DashboardPage() {
         })}
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+        <Card className="col-span-1 md:col-span-2">
           <CardHeader>
             <CardTitle className="text-base font-semibold">Monthly Revenue & Target</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <div className="h-[200px] sm:h-[250px] md:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={mockRevenueData}>
                   <defs>
@@ -197,7 +197,7 @@ export default function DashboardPage() {
             <CardTitle className="text-base font-semibold">Lead Sources</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <div className="h-[200px] sm:h-[250px] md:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -236,13 +236,13 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-semibold">Conversion Analytics</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[280px]">
+            <div className="h-[200px] sm:h-[250px] md:h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={mockConversionData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
@@ -258,10 +258,10 @@ export default function DashboardPage() {
 
         <div className="space-y-4">
           <Card className="flex-1">
-            <CardHeader className="pb-3">
+            <CardHeader className="p-4 sm:p-5 pb-3">
               <CardTitle className="text-base font-semibold">Recent Activities</CardTitle>
             </CardHeader>
-            <CardContent className="pb-4">
+            <CardContent className="p-4 sm:p-5 pb-4">
               <div className="space-y-3">
                 {recentActivities.map((activity) => {
                   return (
@@ -293,10 +293,10 @@ export default function DashboardPage() {
           </Card>
 
           <Card className="flex-1">
-            <CardHeader className="pb-3">
+            <CardHeader className="p-4 sm:p-5 pb-3">
               <CardTitle className="text-base font-semibold">Upcoming Follow-ups</CardTitle>
             </CardHeader>
-            <CardContent className="pb-4">
+            <CardContent className="p-4 sm:p-5 pb-4">
               {followUps.length > 0 ? (
                 <div className="space-y-3">
                   {followUps.slice(0, 5).map((task) => (

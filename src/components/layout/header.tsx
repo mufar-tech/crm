@@ -19,32 +19,48 @@ interface HeaderProps {
 }
 
 export function Header({ onMenuToggle }: HeaderProps) {
-  const [showSearch, setShowSearch] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-30 flex h-16 items-center gap-4 border-b border-gray-200 bg-white px-4 lg:left-64">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-gray-200 bg-white px-3 sm:px-4 lg:left-64">
       <Button
         variant="ghost"
         size="icon"
         onClick={onMenuToggle}
-        className="lg:hidden"
+        className="lg:hidden shrink-0"
       >
         <Menu size={20} />
       </Button>
 
-      <div className={cn("flex flex-1 items-center gap-4", showSearch && "max-sm:absolute max-sm:inset-x-0 max-sm:top-0 max-sm:z-50 max-sm:mx-2 max-sm:mt-2")}>
-        <div className="relative flex-1 max-w-md">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search leads, contacts, companies..."
-            className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
+      {searchOpen && (
+        <div className="fixed inset-0 z-40 flex items-start bg-black/20 p-2 pt-4 sm:hidden" onClick={() => setSearchOpen(false)}>
+          <div className="relative w-full" onClick={(e) => e.stopPropagation()}>
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search..."
+              autoFocus
+              className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-4 text-sm text-gray-900 shadow-lg placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
         </div>
+      )}
+
+      <div className="hidden sm:block relative flex-1 max-w-md">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search leads, contacts, companies..."
+          className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        />
       </div>
 
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="relative">
+      <Button variant="ghost" size="icon" className="sm:hidden shrink-0" onClick={() => setSearchOpen(true)}>
+        <Search size={18} />
+      </Button>
+
+      <div className="flex items-center gap-1 sm:gap-2 ml-auto">
+        <Button variant="ghost" size="icon" className="relative shrink-0">
           <Bell size={18} />
           <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
             3
@@ -53,7 +69,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
+            <Button variant="ghost" size="icon" className="rounded-full shrink-0">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-xs font-bold text-white">
                   JA

@@ -70,8 +70,8 @@ export default function ContactDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild className="h-9 w-9">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <Button variant="ghost" size="icon" asChild className="h-9 w-9 shrink-0">
           <Link href="/contacts">
             <ArrowLeft className="h-4 w-4" />
           </Link>
@@ -91,7 +91,7 @@ export default function ContactDetailPage() {
                 <AvatarFallback className="text-xl">{getInitials(`${contact.firstName} ${contact.lastName}`)}</AvatarFallback>
               </Avatar>
               <div className="pb-1">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-xl font-semibold text-gray-900">
                     {contact.firstName} {contact.lastName}
                   </h2>

@@ -200,8 +200,8 @@ export default function ActivitiesPage() {
 
       <Card>
         <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="relative flex-1 w-full">
               <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input placeholder="Search activities..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
@@ -258,8 +258,8 @@ export default function ActivitiesPage() {
             {grouped.map(([date, acts]) => (
               <div key={date}>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-md">
-                    <Calendar className="h-4 w-4 text-white" />
+                  <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-md">
+                    <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
                   </div>
                   <h3 className="text-sm font-semibold text-gray-900">{date}</h3>
                   <Separator className="flex-1" />
@@ -271,10 +271,10 @@ export default function ActivitiesPage() {
                     const iconBg = typeConfig[activity.type]?.bg || "bg-gray-100"
                     return (
                       <Card key={activity.id} className="group relative overflow-hidden transition-all hover:shadow-md border-l-4" style={{ borderLeftColor: activity.status === "Completed" ? "#10b981" : activity.status === "Scheduled" ? "#3b82f6" : "#ef4444" }}>
-                        <CardContent className="p-4">
+                        <CardContent className="p-3 sm:p-4">
                           <div className="flex items-start gap-4">
-                            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}>
-                              <Icon className="h-5 w-5" />
+                            <div className={`flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}>
+                              <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-3">

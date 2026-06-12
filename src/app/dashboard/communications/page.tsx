@@ -172,7 +172,7 @@ export default function CommunicationsPage() {
       </div>
 
       <Card>
-        <CardContent className="p-4">
+        <CardContent className="p-3 sm:p-4">
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -189,7 +189,7 @@ export default function CommunicationsPage() {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="overflow-x-auto w-full justify-start">
           <TabsTrigger value="All">All</TabsTrigger>
           <TabsTrigger value="Email">
             <Mail className="h-3.5 w-3.5 mr-1.5" />
@@ -227,7 +227,7 @@ export default function CommunicationsPage() {
                 const iconColor = getTypeColor(comm.type)
                 return (
                   <Card key={comm.id} className="group transition-all hover:shadow-md hover:border-gray-300">
-                    <CardContent className="p-4">
+                    <CardContent className="p-3 sm:p-4">
                       <div className="flex items-start gap-4">
                         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconColor}`}>
                           <Icon className="h-5 w-5" />

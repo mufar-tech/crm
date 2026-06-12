@@ -89,7 +89,7 @@ export default function AIPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold tracking-tight text-gray-900">Mufar AI Assistant</h1>
@@ -127,7 +127,7 @@ export default function AIPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50/50 to-transparent rounded-2xl" />
         <Card className="relative border-0 shadow-sm">
           <CardContent className="p-8">
-            <div className="flex items-start gap-6">
+            <div className="flex flex-col sm:flex-row items-start gap-6">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shrink-0">
                 <Brain className="h-8 w-8 text-white" />
               </div>
@@ -138,7 +138,7 @@ export default function AIPage() {
                   predict deal outcomes, and provide actionable insights. Transform your CRM data into 
                   a competitive advantage.
                 </p>
-                <div className="flex items-center gap-6 mt-4">
+                <div className="flex flex-wrap items-center gap-6 mt-4">
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <Zap className="h-4 w-4 text-amber-500" />
                     Predictive Analytics
@@ -158,7 +158,7 @@ export default function AIPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {aiCapabilities.map((capability) => (
           <Card key={capability.title} className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
             <div className={cn(
@@ -190,7 +190,7 @@ export default function AIPage() {
 
       <Card className="bg-gradient-to-r from-blue-600 to-purple-600 border-0">
         <CardContent className="p-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div className="text-white">
               <h3 className="text-lg font-semibold">Ready to Transform Your Sales Process?</h3>
               <p className="text-sm text-blue-100 mt-1 max-w-xl">

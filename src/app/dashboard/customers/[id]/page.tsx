@@ -102,30 +102,30 @@ export default function CustomerDetailPage() {
         Back to Customers
       </Link>
 
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16 ring-2 ring-gray-100">
+      <div className="flex flex-col sm:flex-row items-start gap-4">
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <Avatar className="h-16 w-16 shrink-0 ring-2 ring-gray-100">
             <AvatarFallback className="text-lg font-semibold">{getInitials(customer.name)}</AvatarFallback>
           </Avatar>
           <div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-bold tracking-tight text-gray-900">{customer.name}</h1>
               <Badge variant="success" className="bg-emerald-50 text-emerald-700 border-emerald-200">
                 <CheckCircle2 className="h-3 w-3 mr-0.5" />
                 Customer
               </Badge>
             </div>
-            <div className="flex items-center gap-4 mt-1.5">
+            <div className="flex flex-wrap items-center gap-3 mt-1.5">
               <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                <Building2 className="h-3.5 w-3.5" />
+                <Building2 className="h-3.5 w-3.5 shrink-0" />
                 {customer.company}
               </div>
               <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                <Mail className="h-3.5 w-3.5" />
+                <Mail className="h-3.5 w-3.5 shrink-0" />
                 {customer.email}
               </div>
               <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                <Phone className="h-3.5 w-3.5" />
+                <Phone className="h-3.5 w-3.5 shrink-0" />
                 {customer.phone}
               </div>
             </div>
@@ -133,7 +133,7 @@ export default function CustomerDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
             <div className="rounded-lg bg-blue-50 p-2.5">
@@ -181,19 +181,19 @@ export default function CustomerDetailPage() {
       </div>
 
       <Tabs defaultValue="overview">
-        <TabsList>
-          <TabsTrigger value="overview" className="gap-2"><Eye className="h-4 w-4" />Overview</TabsTrigger>
-          <TabsTrigger value="opportunities" className="gap-2"><TrendingUp className="h-4 w-4" />Opportunities</TabsTrigger>
-          <TabsTrigger value="billing" className="gap-2"><CreditCard className="h-4 w-4" />Billing</TabsTrigger>
-          <TabsTrigger value="communications" className="gap-2"><MessageSquare className="h-4 w-4" />Communications</TabsTrigger>
-          <TabsTrigger value="tasks" className="gap-2"><FileText className="h-4 w-4" />Tasks</TabsTrigger>
-          <TabsTrigger value="documents" className="gap-2"><FileText className="h-4 w-4" />Documents</TabsTrigger>
-          <TabsTrigger value="notes" className="gap-2"><MessageSquare className="h-4 w-4" />Notes</TabsTrigger>
-          <TabsTrigger value="timeline" className="gap-2"><Activity className="h-4 w-4" />Timeline</TabsTrigger>
+        <TabsList className="w-full overflow-x-auto flex-nowrap">
+          <TabsTrigger value="overview" className="gap-2 shrink-0"><Eye className="h-4 w-4" />Overview</TabsTrigger>
+          <TabsTrigger value="opportunities" className="gap-2 shrink-0"><TrendingUp className="h-4 w-4" />Opportunities</TabsTrigger>
+          <TabsTrigger value="billing" className="gap-2 shrink-0"><CreditCard className="h-4 w-4" />Billing</TabsTrigger>
+          <TabsTrigger value="communications" className="gap-2 shrink-0"><MessageSquare className="h-4 w-4" />Communications</TabsTrigger>
+          <TabsTrigger value="tasks" className="gap-2 shrink-0"><FileText className="h-4 w-4" />Tasks</TabsTrigger>
+          <TabsTrigger value="documents" className="gap-2 shrink-0"><FileText className="h-4 w-4" />Documents</TabsTrigger>
+          <TabsTrigger value="notes" className="gap-2 shrink-0"><MessageSquare className="h-4 w-4" />Notes</TabsTrigger>
+          <TabsTrigger value="timeline" className="gap-2 shrink-0"><Activity className="h-4 w-4" />Timeline</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 mt-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-gray-500">Customer Details</CardTitle>
