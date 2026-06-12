@@ -150,7 +150,7 @@ export default function TasksPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Tasks</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your team tasks and follow-ups</p>
@@ -161,7 +161,7 @@ export default function TasksPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {summaryCards.map((item) => {
           const Icon = item.icon
           return (
@@ -182,13 +182,13 @@ export default function TasksPage() {
 
       <Card>
         <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1">
+          <div className="flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="relative w-full sm:flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input placeholder="Search tasks..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full sm:w-[150px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -198,7 +198,7 @@ export default function TasksPage() {
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full sm:w-[150px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -239,7 +239,7 @@ export default function TasksPage() {
 
       <Card>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table className="min-w-[700px]">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[40px]">
@@ -327,7 +327,7 @@ export default function TasksPage() {
                 ))
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
 
@@ -337,7 +337,7 @@ export default function TasksPage() {
       </div>
 
       <Dialog open={formOpen} onOpenChange={(open) => { if (!open) { setFormOpen(false); setEditingTask(null) } }}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="w-[95vw] sm:w-full sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingTask ? "Edit Task" : "New Task"}</DialogTitle>
             <DialogDescription>{editingTask ? "Update task details." : "Create a new task."}</DialogDescription>

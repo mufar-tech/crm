@@ -144,17 +144,17 @@ export default function LeadDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => router.push("/leads")}>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => router.push("/leads")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-lg font-bold text-white">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-lg font-bold text-white">
               {getInitials(lead.name)}
             </div>
             <div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-bold text-gray-900">{lead.name}</h1>
                 <Badge className={getStatusColor(lead.status)} variant="secondary">
                   {lead.status}
@@ -169,7 +169,7 @@ export default function LeadDetailPage() {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         {converted ? (
           <Button variant="secondary" disabled className="gap-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
             <CheckCircle className="h-4 w-4" />
@@ -192,33 +192,33 @@ export default function LeadDetailPage() {
       </div>
 
       <Tabs defaultValue="overview">
-        <TabsList>
+        <TabsList className="w-full overflow-x-auto flex-nowrap">
           <TabsTrigger value="overview" className="gap-2">
-            <FileText className="h-4 w-4" />
+            <FileText className="h-4 w-4 shrink-0" />
             Overview
           </TabsTrigger>
           <TabsTrigger value="activity" className="gap-2">
-            <Activity className="h-4 w-4" />
+            <Activity className="h-4 w-4 shrink-0" />
             Activity
           </TabsTrigger>
           <TabsTrigger value="notes" className="gap-2">
-            <Edit3 className="h-4 w-4" />
+            <Edit3 className="h-4 w-4 shrink-0" />
             Notes
           </TabsTrigger>
           <TabsTrigger value="communications" className="gap-2">
-            <MessageSquare className="h-4 w-4" />
+            <MessageSquare className="h-4 w-4 shrink-0" />
             Communications
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
-          <div className="grid grid-cols-3 gap-4">
-            <Card className="col-span-2">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <Card className="col-span-1 lg:col-span-2">
               <CardHeader>
                 <CardTitle className="text-base font-semibold">Lead Information</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
                       <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Email</p>

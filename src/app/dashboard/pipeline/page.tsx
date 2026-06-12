@@ -136,7 +136,7 @@ export default function PipelinePage() {
         </div>
       </div>
 
-      <ScrollArea className="w-full pb-4">
+      <ScrollArea className="w-full overflow-x-auto pb-4">
         <div className="flex gap-4 min-w-[1400px]">
           {stages.map((stage) => {
             const stageItems = columns[stage]
@@ -145,7 +145,7 @@ export default function PipelinePage() {
             return (
               <div
                 key={stage}
-                className="flex-1 min-w-[180px]"
+                className="flex-1 min-w-[260px] sm:min-w-[280px]"
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => handleDrop(stage)}
               >

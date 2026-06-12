@@ -103,7 +103,7 @@ export default function BillingPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold tracking-tight text-gray-900">Billing</h1>
@@ -115,7 +115,7 @@ export default function BillingPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-blue-100 bg-gradient-to-r from-blue-50 to-blue-50/30 p-5 flex items-center gap-4">
+      <div className="rounded-xl border border-blue-100 bg-gradient-to-r from-blue-50 to-blue-50/30 p-5 flex-col sm:flex-row items-start sm:items-center gap-4">
         <div className="rounded-lg bg-blue-600 p-2.5 shrink-0">
           <Banknote className="h-5 w-5 text-white" />
         </div>
@@ -133,7 +133,7 @@ export default function BillingPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -185,7 +185,7 @@ export default function BillingPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="col-span-2">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -262,7 +262,7 @@ export default function BillingPage() {
 
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <CardTitle className="text-base font-semibold">Invoices</CardTitle>
             <div className="flex items-center gap-2">
               <Select value={filter} onValueChange={setFilter}>
@@ -285,7 +285,7 @@ export default function BillingPage() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table className="min-w-[700px]">
             <TableHeader>
               <TableRow>
                 <TableHead className="pl-6">Invoice #</TableHead>
@@ -339,7 +339,7 @@ export default function BillingPage() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
     </div>

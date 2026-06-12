@@ -130,7 +130,7 @@ export default function IntegrationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Integrations</h1>
           <p className="text-sm text-gray-500 mt-1">
@@ -145,8 +145,8 @@ export default function IntegrationsPage() {
 
       <Card>
         <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1 max-w-md">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="relative w-full sm:max-w-md">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder="Search integrations..."
@@ -155,8 +155,8 @@ export default function IntegrationsPage() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <Tabs value={activeCategory} onValueChange={setActiveCategory} className="flex-1">
-              <TabsList className="bg-gray-50 border border-gray-100">
+            <Tabs value={activeCategory} onValueChange={setActiveCategory} className="flex-1 overflow-x-auto">
+              <TabsList className="bg-gray-50 border border-gray-100 inline-flex">
                 <TabsTrigger value="all">All</TabsTrigger>
                 {categoryOrder.map((cat) => (
                   <TabsTrigger key={cat} value={cat} className="whitespace-nowrap">
@@ -188,7 +188,7 @@ export default function IntegrationsPage() {
                 <h2 className="text-lg font-semibold text-gray-900">{meta?.label || category}</h2>
                 <Badge variant="secondary" className="text-[10px]">{items.length} integration{items.length !== 1 ? "s" : ""}</Badge>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {items.map((integration) => (
                   <IntegrationCard key={integration.id} integration={integration} />
                 ))}
