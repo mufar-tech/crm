@@ -69,7 +69,7 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto px-2 py-4">
         <nav className="flex flex-col gap-1">
           {navigation.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+            const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"))
             const Icon = item.icon
 
             return (
