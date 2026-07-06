@@ -126,7 +126,7 @@ export default function CompanyDetailPage() {
 
       <Card className="overflow-hidden">
         <div className="h-24 bg-gradient-to-r from-blue-600 to-purple-600" />
-        <CardContent className="relative px-6 pb-6 pt-0">
+        <CardContent className="relative p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between -mt-10">
             <div className="flex items-end gap-4">
               <div className="flex h-20 w-20 items-center justify-center rounded-xl border-4 border-white bg-blue-50 text-blue-700 font-bold text-2xl shadow-lg">
@@ -152,14 +152,14 @@ export default function CompanyDetailPage() {
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="w-full overflow-x-auto flex-nowrap">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="contacts">Contacts ({companyContacts.length})</TabsTrigger>
-          <TabsTrigger value="opportunities">Opportunities ({companyOpportunities.length})</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsTrigger value="overview" className="shrink-0">Overview</TabsTrigger>
+          <TabsTrigger value="contacts" className="shrink-0">Contacts ({companyContacts.length})</TabsTrigger>
+          <TabsTrigger value="opportunities" className="shrink-0">Opportunities ({companyOpportunities.length})</TabsTrigger>
+          <TabsTrigger value="activity" className="shrink-0">Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
@@ -368,12 +368,12 @@ export default function CompanyDetailPage() {
                         {idx < companyActivities.length - 1 && (
                           <div className="absolute left-[17px] top-8 bottom-0 w-px bg-gray-200" />
                         )}
-                        <div
-                          className={cn(
-                            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-                            activityColorMap[activity.type] || "bg-gray-100 text-gray-700"
-                          )}
-                        >
+                      <div
+                        className={cn(
+                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                          activityColorMap[activity.type] || "bg-gray-100 text-gray-700"
+                        )}
+                      >
                           <Icon className="h-4 w-4" />
                         </div>
                         <div className="flex-1 min-w-0">

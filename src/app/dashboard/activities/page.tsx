@@ -100,7 +100,7 @@ export default function ActivitiesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Activities</h1>
           <p className="text-sm text-gray-500 mt-1">Track all your team interactions</p>
@@ -112,12 +112,12 @@ export default function ActivitiesPage() {
               Log Activity
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-xl">
+          <DialogContent className="w-[95vw] sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Log Activity</DialogTitle>
               <DialogDescription>Record a new activity interaction.</DialogDescription>
             </DialogHeader>
-            <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 py-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Type</label>
                 <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as Activity["type"] })}>
@@ -200,10 +200,10 @@ export default function ActivitiesPage() {
 
       <Card>
         <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <div className="relative flex-1 w-full">
               <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <Input placeholder="Search activities..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+              <Input placeholder="Search activities..." className="pl-9 w-full" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-[150px]">
@@ -264,7 +264,7 @@ export default function ActivitiesPage() {
                   <h3 className="text-sm font-semibold text-gray-900">{date}</h3>
                   <Separator className="flex-1" />
                 </div>
-                <div className="ml-14 space-y-4">
+                <div className="ml-10 sm:ml-14 space-y-3 sm:space-y-4">
                   {acts.map((activity) => {
                     const Icon = typeConfig[activity.type]?.icon || FileText
                     const iconColor = typeConfig[activity.type]?.color || "text-gray-600"
@@ -272,7 +272,7 @@ export default function ActivitiesPage() {
                     return (
                       <Card key={activity.id} className="group relative overflow-hidden transition-all hover:shadow-md border-l-4" style={{ borderLeftColor: activity.status === "Completed" ? "#10b981" : activity.status === "Scheduled" ? "#3b82f6" : "#ef4444" }}>
                         <CardContent className="p-3 sm:p-4">
-                          <div className="flex items-start gap-4">
+                          <div className="flex items-start gap-2 sm:gap-4">
                             <div className={`flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}>
                               <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                             </div>

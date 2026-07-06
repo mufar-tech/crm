@@ -147,7 +147,7 @@ export default function DashboardPage() {
             <CardTitle className="text-base font-semibold">Monthly Revenue & Target</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[200px] sm:h-[250px] md:h-[300px]">
+            <div className="w-full h-[200px] sm:h-[250px] md:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={mockRevenueData}>
                   <defs>
@@ -197,7 +197,7 @@ export default function DashboardPage() {
             <CardTitle className="text-base font-semibold">Lead Sources</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[200px] sm:h-[250px] md:h-[300px]">
+            <div className="w-full h-[200px] sm:h-[250px] md:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -242,7 +242,7 @@ export default function DashboardPage() {
             <CardTitle className="text-base font-semibold">Conversion Analytics</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[200px] sm:h-[250px] md:h-[280px]">
+            <div className="w-full h-[200px] sm:h-[250px] md:h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={mockConversionData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />

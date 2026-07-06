@@ -113,7 +113,7 @@ const complianceBadges = [
 export default function SecurityPage() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold tracking-tight text-gray-900">Security</h1>
@@ -125,7 +125,7 @@ export default function SecurityPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {securityCards.map((card) => (
           <Card key={card.title} className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
@@ -199,7 +199,7 @@ export default function SecurityPage() {
           <CardTitle className="text-base font-semibold">Security Features</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {securityFeatures.map((feature) => (
               <div key={feature.title} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                 <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
@@ -225,7 +225,7 @@ export default function SecurityPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {complianceBadges.map((badge) => (
               <div key={badge.name} className="flex flex-col items-center text-center p-4 rounded-xl border border-gray-100 hover:border-blue-100 hover:shadow-sm transition-all">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center mb-3">

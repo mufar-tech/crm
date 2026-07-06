@@ -139,7 +139,7 @@ export default function TeamPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -267,7 +267,7 @@ export default function TeamPage() {
       </Card>
 
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-md">
+        <DialogContent className="w-[95vw] sm:max-w-lg p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Invite Team Member</DialogTitle>
             <DialogDescription>Send an invitation to join your CRM workspace.</DialogDescription>
@@ -331,7 +331,7 @@ export default function TeamPage() {
       </Dialog>
 
       <Dialog open={!!editRole} onOpenChange={(open) => !open && setEditRole(null)}>
-        <DialogContent className="w-[95vw] sm:max-w-sm">
+        <DialogContent className="w-[95vw] sm:max-w-lg p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Edit Role</DialogTitle>
             <DialogDescription>Change role for {editRole?.name}.</DialogDescription>

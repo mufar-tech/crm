@@ -132,7 +132,7 @@ function ProfileTab() {
             </div>
           </div>
           <Separator />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
               <Label>Full Name</Label>
               <Input value={name} onChange={(e) => setName(e.target.value)} />
@@ -163,7 +163,7 @@ function ProfileTab() {
               onChange={(e) => setBio(e.target.value)}
             />
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             {saved && (
               <div className="flex items-center gap-2 text-sm text-emerald-600 bg-emerald-50 px-3 py-2 rounded-lg">
                 <CheckCircle2 className="h-4 w-4" />
@@ -191,7 +191,7 @@ function CRMPreferencesTab() {
           <CardDescription>Configure your default CRM preferences</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
               <Label>Default Lead Status</Label>
               <Select defaultValue="New">
@@ -396,7 +396,7 @@ function NotificationsTab() {
         <CardContent className="space-y-4">
           {notifications.map((item) => (
             <div key={item.id}>
-              <div className="flex items-center justify-between py-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 py-2">
                 <div>
                   <p className="text-sm font-medium text-gray-900">{item.label}</p>
                   <p className="text-xs text-gray-500">{item.description}</p>

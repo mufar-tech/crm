@@ -87,7 +87,7 @@ export default function OpportunityDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start gap-3">
         <Link
           href="/opportunities"
           className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
@@ -167,15 +167,15 @@ export default function OpportunityDetailPage() {
 
       <Tabs defaultValue="overview">
         <TabsList className="w-full overflow-x-auto flex-nowrap">
-          <TabsTrigger value="overview" className="gap-2">
+          <TabsTrigger value="overview" className="gap-2 shrink-0">
             <FileText className="h-4 w-4 shrink-0" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="activity" className="gap-2">
+          <TabsTrigger value="activity" className="gap-2 shrink-0">
             <ActivityIcon className="h-4 w-4 shrink-0" />
             Activity
           </TabsTrigger>
-          <TabsTrigger value="notes" className="gap-2">
+          <TabsTrigger value="notes" className="gap-2 shrink-0">
             <MessageSquare className="h-4 w-4 shrink-0" />
             Notes
           </TabsTrigger>
