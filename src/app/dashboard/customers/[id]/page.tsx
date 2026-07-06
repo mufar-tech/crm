@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import {
@@ -23,6 +23,7 @@ import {
   ListTodo,
   StickyNote,
   CalendarClock,
+  Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -30,54 +31,75 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { mockLeads, mockOpportunities, mockBillingInfo, mockCommunications, mockTasks, mockActivities } from "@/data/mock-data"
+import { useAuth } from "@/contexts/auth-context"
 import { formatCurrency, formatDate, getInitials, cn } from "@/lib/utils"
 
 export default function CustomerDetailPage() {
   const params = useParams()
   const id = params.id as string
 
-  const customer = useMemo(() => mockLeads.find((l) => l.id === id), [id])
-  const opportunities = useMemo(
-    () => mockOpportunities.filter((o) => o.customerId === customer?.company || o.customer === customer?.company),
-    [customer]
-  )
-  const wonOpps = useMemo(() => opportunities.filter((o) => o.stage === "Won"), [opportunities])
-  const billing = useMemo(
-    () => mockBillingInfo.filter((b) => b.customerId === customer?.company || b.customer === customer?.company),
-    [customer]
-  )
-  const communications = useMemo(
-    () => mockCommunications.filter((c) => c.relatedTo === id || wonOpps.some((o) => o.id === c.relatedTo)),
-    [id, wonOpps]
-  )
-  const tasks = useMemo(
-    () => mockTasks.filter((t) => t.relatedTo === id || opportunities.some((o) => o.id === t.relatedTo)),
-    [id, opportunities]
-  )
-  const timeline = useMemo(
-    () =>
-      mockActivities
-        .filter((a) => a.relatedTo === id || opportunities.some((o) => o.id === a.relatedTo))
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    [id, opportunities]
-  )
+  const [customer, setCustomer] = useState<any>(null)
+  const [opportunities, setOpportunities] = useState<any[]>([])
+  const [billing, setBilling] = useState<any[]>([])
+  const [communications, setCommunications] = useState<any[]>([])
+  const [tasks, setTasks] = useState<any[]>([])
+  const [timeline, setTimeline] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { fetchWithAuth } = useAuth()
 
+  const wonOpps = opportunities.filter((o) => o.stage === "Won")
   const totalDeals = wonOpps.length
   const totalRevenue = wonOpps.reduce((sum, o) => sum + o.dealValue, 0)
   const avgDealSize = totalDeals > 0 ? totalRevenue / totalDeals : 0
   const lastActivity = timeline[0]?.date || customer?.updatedAt || ""
 
-  const [notes, setNotes] = useState("")
-  const [savedNotes, setSavedNotes] = useState<string[]>(customer?.notes ? [customer.notes] : [])
+  useEffect(() => {
+    Promise.all([
+      fetchWithAuth(`/api/customers/${id}`),
+      fetchWithAuth("/api/opportunities"),
+      fetchWithAuth("/api/billing"),
+      fetchWithAuth("/api/communications"),
+      fetchWithAuth("/api/tasks"),
+      fetchWithAuth("/api/activities"),
+    ]).then(([customerData, oppsData, billingData, commsData, tasksData, activitiesData]) => {
+      setCustomer(customerData)
+      const filteredOpps = oppsData.filter((o: any) => o.customerId === customerData?.company || o.customer === customerData?.company)
+      setOpportunities(filteredOpps)
+      setBilling(billingData.filter((b: any) => b.customerId === customerData?.company || b.customer === customerData?.company))
+      const won = filteredOpps.filter((o: any) => o.stage === "Won")
+      setCommunications(commsData.filter((c: any) => c.relatedTo === id || won.some((o: any) => o.id === c.relatedTo)))
+      setTasks(tasksData.filter((t: any) => t.relatedTo === id || filteredOpps.some((o: any) => o.id === t.relatedTo)))
+      setTimeline(activitiesData
+        .filter((a: any) => a.relatedTo === id || filteredOpps.some((o: any) => o.id === a.relatedTo))
+        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      )
+    }).catch(console.error).finally(() => setLoading(false))
+  }, [id])
 
-  function addNote() {
-    if (notes.trim()) {
+  const [notes, setNotes] = useState("")
+  const [savedNotes, setSavedNotes] = useState<string[]>([])
+
+  async function addNote() {
+    if (!notes.trim()) return
+    const customerId = customer?.id || customer?._id
+    if (!customerId) return
+    try {
+      const existing = customer.notes || ""
+      const updatedNotes = existing ? `${existing}\n---\n${notes.trim()}` : notes.trim()
+      const updated = await fetchWithAuth(`/api/customers/${customerId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: updatedNotes }),
+      })
+      setCustomer(updated)
       setSavedNotes((prev) => [notes.trim(), ...prev])
-      setNotes("")
+    } catch (e) {
+      console.error("Failed to save note", e)
     }
+    setNotes("")
   }
 
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
   if (!customer) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
@@ -242,7 +264,7 @@ export default function CustomerDetailPage() {
               ) : (
                 <div className="space-y-3">
                   {wonOpps.map((opp) => (
-                    <div key={opp.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
+                    <div key={opp.id || opp._id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
                       <div>
                         <p className="text-sm font-medium text-gray-900">{opp.name}</p>
                         <p className="text-xs text-gray-500 mt-0.5">Closed {formatDate(opp.expectedCloseDate)}</p>
@@ -270,7 +292,7 @@ export default function CustomerDetailPage() {
               ) : (
                 <div className="divide-y divide-gray-100">
                   {billing.map((bill) => (
-                    <div key={bill.id} className="flex items-center justify-between py-3">
+                    <div key={bill.id || bill._id} className="flex items-center justify-between py-3">
                       <div>
                         <p className="text-sm font-medium text-gray-900">{bill.invoice}</p>
                         <p className="text-xs text-gray-500">{formatDate(bill.date)}</p>
@@ -300,7 +322,7 @@ export default function CustomerDetailPage() {
               ) : (
                 <div className="space-y-4">
                   {communications.map((comm) => (
-                    <div key={comm.id} className="flex items-start gap-3">
+                    <div key={comm.id || comm._id} className="flex items-start gap-3">
                       <div className={cn("rounded-full p-1.5 mt-0.5",
                         comm.type === "Email" ? "bg-blue-50 text-blue-600" :
                         comm.type === "Meeting" ? "bg-purple-50 text-purple-600" :
@@ -339,7 +361,7 @@ export default function CustomerDetailPage() {
               ) : (
                 <div className="space-y-3">
                   {tasks.map((task) => (
-                    <div key={task.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100">
+                    <div key={task.id || task._id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100">
                       <div>
                         <p className="text-sm font-medium text-gray-900">{task.title}</p>
                         <p className="text-xs text-gray-500 mt-0.5">Due {formatDate(task.dueDate)}</p>
@@ -429,7 +451,7 @@ export default function CustomerDetailPage() {
                 <div className="relative pl-6 space-y-6">
                   <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-gray-100" />
                   {timeline.map((act) => (
-                    <div key={act.id} className="relative">
+                    <div key={act.id || act._id} className="relative">
                       <div className={cn("absolute -left-[19px] top-1 rounded-full p-1",
                         act.type === "Call" ? "bg-green-50" :
                         act.type === "Email" ? "bg-blue-50" :

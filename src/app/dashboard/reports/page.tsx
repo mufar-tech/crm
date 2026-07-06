@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   BarChart,
   Bar,
@@ -36,6 +36,9 @@ import {
   UserCheck,
   MousePointerClick,
   CreditCard,
+  Loader2,
+  FileSpreadsheet,
+  FileText,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -44,15 +47,15 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Progress } from "@/components/ui/progress"
 import {
-  mockLeadSourceData,
-  mockConversionData,
-  mockRevenueData,
-  mockDashboardKPIs,
-  mockOpportunities,
-  mockLeads,
-  mockTeamMembers,
-} from "@/data/mock-data"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { formatCurrency, formatNumber } from "@/lib/utils"
+import { useAuth } from "@/contexts/auth-context"
+import { exportData, type ExportFormat } from "@/lib/export-data"
+import * as XLSX from "xlsx"
 
 const PIE_COLORS = ["#2563eb", "#7c3aed", "#059669", "#d97706", "#dc2626", "#0891b2", "#9333ea"]
 
@@ -89,38 +92,67 @@ const roleColors: Record<string, string> = {
 
 export default function ReportsPage() {
   const [activeDateRange, setActiveDateRange] = useState("This Year")
+  const [revenueData, setRevenueData] = useState<any[]>([])
+  const [leadSourceData, setLeadSourceData] = useState<any[]>([])
+  const [conversionData, setConversionData] = useState<any[]>([])
+  const [kpis, setKpis] = useState<any[]>([])
+  const [leads, setLeads] = useState<any[]>([])
+  const [opportunities, setOpportunities] = useState<any[]>([])
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { fetchWithAuth } = useAuth()
 
-  const totalLeads = mockLeads.length
-  const wonLeads = mockLeads.filter((l) => l.status === "Won").length
+  useEffect(() => {
+    Promise.all([
+      fetchWithAuth("/api/dashboard"),
+      fetchWithAuth("/api/leads"),
+      fetchWithAuth("/api/opportunities"),
+      fetchWithAuth("/api/team"),
+    ]).then(([dashboard, leadsData, oppsData, teamData]) => {
+      setRevenueData(dashboard.revenueData || [])
+      setLeadSourceData(dashboard.leadSourceData || [])
+      setConversionData(dashboard.conversionData || [])
+      setKpis(dashboard.kpis || [])
+      setLeads(leadsData)
+      setOpportunities(oppsData)
+      setTeamMembers(teamData)
+    }).catch(console.error)
+    .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
+
+  const totalLeads = leads.length
+  const wonLeads = leads.filter((l: any) => l.status === "Won").length
   const conversionRate = totalLeads > 0 ? ((wonLeads / totalLeads) * 100).toFixed(1) : "0.0"
-  const totalRevenue = mockRevenueData.reduce((sum, d) => sum + d.revenue, 0)
-  const totalOpportunities = mockOpportunities.length
-  const activeDeals = mockOpportunities.filter((o) => o.stage !== "Won" && o.stage !== "Lost").length
+  const totalRevenue = revenueData.reduce((sum: number, d: any) => sum + d.revenue, 0)
+  const totalOpportunities = opportunities.length
+  const activeDeals = opportunities.filter((o: any) => o.stage !== "Won" && o.stage !== "Lost").length
 
-  const sourceWithPercent = mockLeadSourceData.map((s) => ({
+  const sourceWithPercent = leadSourceData.map((s: any) => ({
     ...s,
-    percent: ((s.count / mockLeadSourceData.reduce((a, b) => a + b.count, 0)) * 100).toFixed(1),
+    percent: ((s.count / leadSourceData.reduce((a: number, b: any) => a + b.count, 0)) * 100).toFixed(1),
   }))
 
-  const pipelineByStage = mockOpportunities.reduce(
-    (acc, opp) => {
+  const pipelineByStage: Record<string, { stage: string; value: number; count: number }> = opportunities.reduce(
+    (acc: any, opp: any) => {
       const stage = opp.stage
       if (!acc[stage]) acc[stage] = { stage, value: 0, count: 0 }
       acc[stage].value += opp.dealValue
       acc[stage].count += 1
       return acc
     },
-    {} as Record<string, { stage: string; value: number; count: number }>
+    {}
   )
   const pipelineData = Object.values(pipelineByStage)
 
-  const forecastData = mockRevenueData.map((d) => ({
+  const forecastData = revenueData.map((d: any) => ({
     month: d.month,
     actual: d.revenue,
     forecast: d.target,
   }))
 
-  const teamPerformance = mockTeamMembers.map((m) => ({
+  const teamPerformance = teamMembers.map((m: any) => ({
     name: m.name,
     leads: m.leads,
     deals: m.deals,
@@ -151,10 +183,131 @@ export default function ReportsPage() {
               </button>
             ))}
           </div>
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                Export All
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem onClick={() => {
+                const reports = [
+                  { data: revenueData, cols: [
+                    { header: "Month", accessor: (r: any) => r.month },
+                    { header: "Revenue", accessor: (r: any) => r.revenue },
+                    { header: "Target", accessor: (r: any) => r.target },
+                  ], name: "revenue" },
+                  { data: sourceWithPercent, cols: [
+                    { header: "Source", accessor: (r: any) => r.source },
+                    { header: "Leads", accessor: (r: any) => r.count },
+                    { header: "% of Total", accessor: (r: any) => r.percent },
+                    { header: "Conversion Rate", accessor: (r: any) => r.conversion },
+                  ], name: "lead-sources" },
+                  { data: conversionData, cols: [
+                    { header: "Stage", accessor: (r: any) => r.stage },
+                    { header: "Count", accessor: (r: any) => r.count },
+                    { header: "Rate (%)", accessor: (r: any) => r.rate },
+                  ], name: "conversion-funnel" },
+                  { data: teamPerformance, cols: [
+                    { header: "Team Member", accessor: (r: any) => r.name },
+                    { header: "Leads", accessor: (r: any) => r.leads },
+                    { header: "Deals", accessor: (r: any) => r.deals },
+                    { header: "Revenue", accessor: (r: any) => r.revenue },
+                    { header: "Conversion (%)", accessor: (r: any) => r.conversion },
+                  ], name: "team-performance" },
+                  { data: pipelineData, cols: [
+                    { header: "Stage", accessor: (r: any) => r.stage },
+                    { header: "Deals", accessor: (r: any) => r.count },
+                    { header: "Total Value", accessor: (r: any) => r.value },
+                  ], name: "pipeline-summary" },
+                ]
+                reports.forEach((r) => exportData(r.data, r.cols, "csv", r.name, `${r.name}.csv`))
+              }}>
+                <FileText className="mr-2 h-4 w-4" />
+                CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                const reports = [
+                  { data: revenueData, cols: [
+                    { header: "Month", accessor: (r: any) => r.month },
+                    { header: "Revenue", accessor: (r: any) => r.revenue },
+                    { header: "Target", accessor: (r: any) => r.target },
+                  ], sheet: "Revenue" },
+                  { data: sourceWithPercent, cols: [
+                    { header: "Source", accessor: (r: any) => r.source },
+                    { header: "Leads", accessor: (r: any) => r.count },
+                    { header: "% of Total", accessor: (r: any) => r.percent },
+                    { header: "Conversion Rate", accessor: (r: any) => r.conversion },
+                  ], sheet: "Lead Sources" },
+                  { data: conversionData, cols: [
+                    { header: "Stage", accessor: (r: any) => r.stage },
+                    { header: "Count", accessor: (r: any) => r.count },
+                    { header: "Rate (%)", accessor: (r: any) => r.rate },
+                  ], sheet: "Conversion" },
+                  { data: teamPerformance, cols: [
+                    { header: "Team Member", accessor: (r: any) => r.name },
+                    { header: "Leads", accessor: (r: any) => r.leads },
+                    { header: "Deals", accessor: (r: any) => r.deals },
+                    { header: "Revenue", accessor: (r: any) => r.revenue },
+                    { header: "Conversion (%)", accessor: (r: any) => r.conversion },
+                  ], sheet: "Performance" },
+                  { data: pipelineData, cols: [
+                    { header: "Stage", accessor: (r: any) => r.stage },
+                    { header: "Deals", accessor: (r: any) => r.count },
+                    { header: "Total Value", accessor: (r: any) => r.value },
+                  ], sheet: "Pipeline" },
+                ]
+                const wb = XLSX.utils.book_new()
+                reports.forEach((r) => {
+                  const wsData = [r.cols.map((c: any) => c.header)]
+                  r.data.forEach((row: any) => wsData.push(r.cols.map((c: any) => c.accessor(row))))
+                  const ws = XLSX.utils.aoa_to_sheet(wsData)
+                  XLSX.utils.book_append_sheet(wb, ws, r.sheet)
+                })
+                XLSX.writeFile(wb, "reports.xlsx")
+              }}>
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                const reports = [
+                  { data: revenueData, cols: [
+                    { header: "Month", accessor: (r: any) => r.month },
+                    { header: "Revenue", accessor: (r: any) => r.revenue },
+                    { header: "Target", accessor: (r: any) => r.target },
+                  ], title: "Revenue Data" },
+                  { data: sourceWithPercent, cols: [
+                    { header: "Source", accessor: (r: any) => r.source },
+                    { header: "Leads", accessor: (r: any) => r.count },
+                    { header: "% of Total", accessor: (r: any) => r.percent },
+                    { header: "Conversion Rate", accessor: (r: any) => r.conversion },
+                  ], title: "Lead Sources" },
+                  { data: conversionData, cols: [
+                    { header: "Stage", accessor: (r: any) => r.stage },
+                    { header: "Count", accessor: (r: any) => r.count },
+                    { header: "Rate (%)", accessor: (r: any) => r.rate },
+                  ], title: "Conversion Funnel" },
+                  { data: teamPerformance, cols: [
+                    { header: "Team Member", accessor: (r: any) => r.name },
+                    { header: "Leads", accessor: (r: any) => r.leads },
+                    { header: "Deals", accessor: (r: any) => r.deals },
+                    { header: "Revenue", accessor: (r: any) => r.revenue },
+                    { header: "Conversion (%)", accessor: (r: any) => r.conversion },
+                  ], title: "Team Performance" },
+                  { data: pipelineData, cols: [
+                    { header: "Stage", accessor: (r: any) => r.stage },
+                    { header: "Deals", accessor: (r: any) => r.count },
+                    { header: "Total Value", accessor: (r: any) => r.value },
+                  ], title: "Pipeline Summary" },
+                ]
+                reports.forEach((r) => exportData(r.data, r.cols, "pdf", r.title, `${r.title.replace(/\s+/g, "-").toLowerCase()}.pdf`))
+              }}>
+                <FileText className="mr-2 h-4 w-4" />
+                PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -239,7 +392,7 @@ export default function ReportsPage() {
               <CardContent>
                 <div className="w-full h-[200px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={mockRevenueData}>
+                    <LineChart data={revenueData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                       <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} tickLine={false} />
                       <YAxis
@@ -284,7 +437,7 @@ export default function ReportsPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={mockLeadSourceData}
+                        data={leadSourceData}
                         cx="50%"
                         cy="50%"
                         innerRadius={45}
@@ -293,7 +446,7 @@ export default function ReportsPage() {
                         dataKey="count"
                         nameKey="source"
                       >
-                        {mockLeadSourceData.map((_, index) => (
+                        {leadSourceData.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                         ))}
                       </Pie>
@@ -326,7 +479,7 @@ export default function ReportsPage() {
               <CardContent>
                 <div className="w-full h-[200px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={mockConversionData} layout="vertical">
+                    <BarChart data={conversionData} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
                       <XAxis type="number" stroke="#94a3b8" fontSize={12} tickLine={false} />
                       <YAxis dataKey="stage" type="category" stroke="#94a3b8" fontSize={12} tickLine={false} width={80} />
@@ -344,7 +497,7 @@ export default function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {mockDashboardKPIs.slice(0, 6).map((kpi) => (
+                  {kpis.slice(0, 6).map((kpi) => (
                     <div key={kpi.label} className="flex items-center justify-between rounded-lg border border-gray-100 px-4 py-3">
                       <div>
                         <p className="text-xs text-gray-500">{kpi.label}</p>
@@ -379,7 +532,7 @@ export default function ReportsPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={mockLeadSourceData}
+                        data={leadSourceData}
                         cx="50%"
                         cy="50%"
                         outerRadius={100}
@@ -389,7 +542,7 @@ export default function ReportsPage() {
                         label={({ name, percent }: any) => `${name || ""} ${percent ? (percent * 100).toFixed(0) : 0}%`}
                         labelLine={true}
                       >
-                        {mockLeadSourceData.map((_, index) => (
+                        {leadSourceData.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                         ))}
                       </Pie>
@@ -407,7 +560,7 @@ export default function ReportsPage() {
               <CardContent>
                 <div className="w-full h-[200px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={mockLeadSourceData} layout="vertical">
+                    <BarChart data={leadSourceData} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
                       <XAxis type="number" stroke="#94a3b8" fontSize={12} tickLine={false} unit="%" />
                       <YAxis dataKey="source" type="category" stroke="#94a3b8" fontSize={12} tickLine={false} width={100} />
@@ -437,7 +590,7 @@ export default function ReportsPage() {
                 </thead>
                 <tbody>
                   {sourceWithPercent.map((item, index) => {
-                    const maxCount = Math.max(...mockLeadSourceData.map((s) => s.count))
+                    const maxCount = Math.max(...leadSourceData.map((s) => s.count))
                     return (
                       <tr key={item.source} className="border-b border-gray-50 last:border-0">
                         <td className="px-6 py-3.5">
@@ -483,7 +636,7 @@ export default function ReportsPage() {
               <CardContent>
                 <div className="w-full h-[200px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={mockConversionData}>
+                    <BarChart data={conversionData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                       <XAxis dataKey="stage" stroke="#94a3b8" fontSize={12} tickLine={false} />
                       <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
@@ -505,7 +658,7 @@ export default function ReportsPage() {
               <CardContent>
                 <div className="w-full h-[200px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={mockConversionData}>
+                    <AreaChart data={conversionData}>
                       <defs>
                         <linearGradient id="dropoffGradient" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#e11d48" stopOpacity={0.25} />
@@ -530,8 +683,8 @@ export default function ReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockConversionData.map((item, index) => {
-                  const prevCount = index > 0 ? mockConversionData[index - 1].count : item.count
+                {conversionData.map((item, index) => {
+                  const prevCount = index > 0 ? conversionData[index - 1].count : item.count
                   const dropoff = index > 0 ? ((prevCount - item.count) / prevCount * 100).toFixed(1) : "0.0"
                   return (
                     <div key={item.stage}>
@@ -572,7 +725,7 @@ export default function ReportsPage() {
               <CardContent>
                 <div className="w-full h-[200px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={mockRevenueData}>
+                    <AreaChart data={revenueData}>
                       <defs>
                         <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3} />
@@ -604,7 +757,7 @@ export default function ReportsPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={mockLeadSourceData.map((s) => ({ ...s, value: s.count * 500 }))}
+                        data={leadSourceData.map((s) => ({ ...s, value: s.count * 500 }))}
                         cx="50%"
                         cy="50%"
                         outerRadius={90}
@@ -612,7 +765,7 @@ export default function ReportsPage() {
                         dataKey="value"
                         nameKey="source"
                       >
-                        {mockLeadSourceData.map((_, index) => (
+                        {leadSourceData.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                         ))}
                       </Pie>
@@ -648,7 +801,7 @@ export default function ReportsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockRevenueData.map((item) => {
+                  {revenueData.map((item) => {
                     const achievement = ((item.revenue / item.target) * 100).toFixed(1)
                     const variance = item.revenue - item.target
                     const isAbove = variance >= 0
@@ -859,7 +1012,7 @@ export default function ReportsPage() {
                 </thead>
                 <tbody>
                   {pipelineData.map((item) => {
-                    const totalPipeValue = pipelineData.reduce((s, p) => s + p.value, 0)
+                    const totalPipeValue = pipelineData.reduce((s: number, p: any) => s + p.value, 0)
                     const pct = ((item.value / totalPipeValue) * 100).toFixed(1)
                     const avgDeal = item.count > 0 ? item.value / item.count : 0
                     return (

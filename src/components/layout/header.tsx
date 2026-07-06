@@ -13,13 +13,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Menu, Search, Bell } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
 
 interface HeaderProps {
   onMenuToggle?: () => void
+  userName?: string
+  userEmail?: string
+  userRole?: string
 }
 
-export function Header({ onMenuToggle }: HeaderProps) {
+export function Header({ onMenuToggle, userName = "User", userEmail = "", userRole = "" }: HeaderProps) {
   const [searchOpen, setSearchOpen] = useState(false)
+  const { logout } = useAuth()
+  const initials = userName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-gray-200 bg-white px-3 sm:px-4">
@@ -72,7 +78,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             <Button variant="ghost" size="icon" className="rounded-full shrink-0">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-xs font-bold text-white">
-                  JA
+                  {initials}
                 </AvatarFallback>
               </Avatar>
             </Button>
@@ -80,8 +86,8 @@ export function Header({ onMenuToggle }: HeaderProps) {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div className="flex flex-col gap-1">
-                <p className="text-sm font-semibold text-gray-900">John Anderson</p>
-                <p className="text-xs font-normal text-gray-500">john@mufar.com</p>
+                <p className="text-sm font-semibold text-gray-900">{userName}</p>
+                <p className="text-xs font-normal text-gray-500">{userEmail}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -89,7 +95,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             <DropdownMenuItem>Settings</DropdownMenuItem>
             <DropdownMenuItem>Billing</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600 focus:bg-red-50 focus:text-red-700">
+            <DropdownMenuItem className="text-red-600 focus:bg-red-50 focus:text-red-700" onClick={logout}>
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>

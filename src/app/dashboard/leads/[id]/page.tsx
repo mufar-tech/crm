@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -42,8 +42,9 @@ import {
   Edit3,
   Save,
   X,
+  Loader2,
 } from "lucide-react"
-import { mockLeads, mockActivities, mockTeamMembers } from "@/data/mock-data"
+import { useAuth } from "@/contexts/auth-context"
 import { formatDate, formatCurrency, getInitials, getStatusColor } from "@/lib/utils"
 import type { Lead, LeadStatus } from "@/types"
 
@@ -62,21 +63,38 @@ export default function LeadDetailPage() {
   const router = useRouter()
   const leadId = params.id as string
 
-  const [lead, setLead] = useState<Lead | undefined>(() => mockLeads.find((l) => l.id === leadId))
+  const [lead, setLead] = useState<Lead | null>(null)
+  const [activities, setActivities] = useState<any[]>([])
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [converted, setConverted] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [assignOpen, setAssignOpen] = useState(false)
   const [assignTo, setAssignTo] = useState("")
   const [editingNotes, setEditingNotes] = useState(false)
   const [notesText, setNotesText] = useState("")
+  const { fetchWithAuth } = useAuth()
 
+  useEffect(() => {
+    Promise.all([
+      fetchWithAuth(`/api/leads/${leadId}`),
+      fetchWithAuth("/api/activities"),
+      fetchWithAuth("/api/team"),
+    ]).then(([leadData, activitiesData, teamData]) => {
+      setLead(leadData)
+      setActivities(activitiesData)
+      setTeamMembers(teamData)
+    }).catch(console.error).finally(() => setLoading(false))
+  }, [leadId])
+
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
   if (!lead) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-900">Lead not found</h2>
           <p className="mt-1 text-sm text-gray-500">The lead you are looking for does not exist.</p>
-          <Button variant="outline" className="mt-4" onClick={() => router.push("/leads")}>
+          <Button variant="outline" className="mt-4" onClick={() => router.push("/dashboard/leads")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Leads
           </Button>
@@ -85,13 +103,13 @@ export default function LeadDetailPage() {
     )
   }
 
-  const relatedActivities = mockActivities.filter(
+  const relatedActivities = activities.filter(
     (a) => a.relatedTo === lead.id || a.relatedTo === lead.company
   )
 
   const handleDelete = () => {
     setDeleteOpen(false)
-    router.push("/leads")
+    router.push("/dashboard/leads")
   }
 
   const handleAssign = () => {
@@ -135,7 +153,7 @@ export default function LeadDetailPage() {
     }
   }
 
-  const teamMemberName = mockTeamMembers.find((m) => m.id === lead.assignedTo)?.name || "Unassigned"
+  const teamMemberName = teamMembers.find((m) => m.id === lead.assignedTo)?.name || "Unassigned"
 
   const communications = [
     { type: "Email", subject: "Initial Outreach", date: lead.createdAt, content: `First contact made with ${lead.name} at ${lead.company}.` },
@@ -145,7 +163,7 @@ export default function LeadDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => router.push("/leads")}>
+        <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => router.push("/dashboard/leads")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
@@ -315,7 +333,7 @@ export default function LeadDetailPage() {
                   {relatedActivities
                     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                     .map((activity, index) => (
-                      <div key={activity.id} className="relative flex gap-4 pb-6 last:pb-0">
+                      <div key={activity.id || activity._id} className="relative flex gap-4 pb-6 last:pb-0">
                         {index < relatedActivities.length - 1 && (
                           <div className="absolute left-[19px] top-10 h-full w-px bg-gray-200" />
                         )}
@@ -462,8 +480,8 @@ export default function LeadDetailPage() {
                 <SelectValue placeholder="Select team member" />
               </SelectTrigger>
               <SelectContent>
-                {mockTeamMembers.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>
+                {teamMembers.map((m) => (
+                  <SelectItem key={m.id || m._id} value={m.id}>
                     <div className="flex items-center gap-2">
                       <span>{m.name}</span>
                       <span className="text-xs text-gray-400">({m.role})</span>

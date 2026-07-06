@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import {
@@ -18,6 +18,7 @@ import {
   FileText,
   MessageSquare,
   ActivityIcon,
+  Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -25,7 +26,7 @@ import { Progress } from "@/components/ui/progress"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
-import { mockOpportunities, mockActivities, mockTeamMembers } from "@/data/mock-data"
+import { useAuth } from "@/contexts/auth-context"
 import type { PipelineStage } from "@/types"
 import { formatCurrency, formatDate, getStatusColor } from "@/lib/utils"
 
@@ -36,25 +37,29 @@ export default function OpportunityDetailPage() {
   const router = useRouter()
   const id = params.id as string
 
-  const [opportunity, setOpportunity] = useState(() => mockOpportunities.find((o) => o.id === id))
+  const [opportunity, setOpportunity] = useState<any>(null)
+  const [owner, setOwner] = useState<any>(null)
+  const [activityList, setActivityList] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { fetchWithAuth } = useAuth()
 
-  const owner = useMemo(
-    () => mockTeamMembers.find((m) => m.id === opportunity?.owner),
-    [opportunity]
-  )
+  const daysOpen = opportunity
+    ? Math.floor((new Date().getTime() - new Date(opportunity.createdAt).getTime()) / (1000 * 60 * 60 * 24))
+    : 0
 
-  const daysOpen = useMemo(() => {
-    if (!opportunity) return 0
-    const created = new Date(opportunity.createdAt)
-    const now = new Date()
-    return Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24))
-  }, [opportunity])
+  useEffect(() => {
+    Promise.all([
+      fetchWithAuth(`/api/opportunities/${id}`),
+      fetchWithAuth("/api/team"),
+      fetchWithAuth("/api/activities"),
+    ]).then(([oppData, teamData, activitiesData]) => {
+      setOpportunity(oppData)
+      setOwner(teamData.find((m: any) => m.id === oppData?.owner) || null)
+      setActivityList(activitiesData.filter((a: any) => a.relatedTo === id))
+    }).catch(console.error).finally(() => setLoading(false))
+  }, [id])
 
-  const activityList = useMemo(
-    () => mockActivities.filter((a) => a.relatedTo === id),
-    [id]
-  )
-
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
   if (!opportunity) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
@@ -74,12 +79,12 @@ export default function OpportunityDetailPage() {
     const idx = stageOrder.indexOf(opportunity.stage)
     if (idx < stageOrder.length - 1) {
       const nextStage = stageOrder[idx + 1]
-      setOpportunity((prev) => prev ? { ...prev, stage: nextStage } : prev)
+      setOpportunity((prev: any) => prev ? { ...prev, stage: nextStage } : prev)
     }
   }
 
   function handleStageChange(stage: PipelineStage) {
-    setOpportunity((prev) => prev ? { ...prev, stage } : prev)
+    setOpportunity((prev: any) => prev ? { ...prev, stage } : prev)
   }
 
   const currentStageIndex = stageOrder.indexOf(opportunity.stage)
@@ -281,7 +286,7 @@ export default function OpportunityDetailPage() {
               ) : (
                 <div className="space-y-4">
                   {activityList.map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-3">
+                    <div key={activity.id || activity._id} className="flex items-start gap-3">
                       <div className={`rounded-full p-1.5 mt-0.5 ${
                         activity.type === "Call" ? "bg-green-50 text-green-600" :
                         activity.type === "Email" ? "bg-blue-50 text-blue-600" :

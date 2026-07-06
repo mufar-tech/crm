@@ -1,10 +1,10 @@
 "use client"
 
-import { useMemo } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { ArrowLeft, Mail, Phone, Briefcase, Building2, Calendar, Clock, FileText, StickyNote, Users } from "lucide-react"
-import { mockContacts, mockActivities } from "@/data/mock-data"
+import { ArrowLeft, Mail, Phone, Briefcase, Building2, Calendar, Clock, FileText, StickyNote, Users, Loader2 } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
 import { getInitials, formatDate, cn } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -37,19 +37,23 @@ const activityColorMap: Record<string, string> = {
 
 export default function ContactDetailPage() {
   const params = useParams()
-  const contact = useMemo(
-    () => mockContacts.find((c) => c.id === params.id),
-    [params.id]
-  )
+  const id = params.id as string
+  const [contact, setContact] = useState<any>(null)
+  const [activities, setActivities] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { fetchWithAuth } = useAuth()
 
-  const activities = useMemo(
-    () =>
-      mockActivities
-        .filter((a) => a.relatedTo === contact?.id || a.relatedTo === contact?.company)
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    [contact]
-  )
+  useEffect(() => {
+    Promise.all([
+      fetchWithAuth(`/api/contacts/${id}`),
+      fetchWithAuth("/api/activities"),
+    ]).then(([contactData, activitiesData]) => {
+      setContact(contactData)
+      setActivities(activitiesData.filter((a: any) => a.relatedTo === contactData?.id || a.relatedTo === contactData?.company).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()))
+    }).catch(console.error).finally(() => setLoading(false))
+  }, [id])
 
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
   if (!contact) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
@@ -213,7 +217,7 @@ export default function ContactDetailPage() {
                 {activities.map((activity, idx) => {
                   const Icon = activityIconMap[activity.type] || FileText
                   return (
-                    <div key={activity.id} className="relative flex gap-4 pb-6 last:pb-0">
+                    <div key={activity.id || activity._id} className="relative flex gap-4 pb-6 last:pb-0">
                       {idx < activities.length - 1 && (
                         <div className="absolute left-[17px] top-8 bottom-0 w-px bg-gray-200" />
                       )}

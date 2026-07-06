@@ -2,11 +2,13 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -15,6 +17,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [rememberMe, setRememberMe] = useState(false)
+  const { login } = useAuth()
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,8 +30,14 @@ export default function LoginPage() {
     }
 
     setIsLoading(true)
-    await new Promise((r) => setTimeout(r, 2000))
-    setIsLoading(false)
+    try {
+      await login(email, password)
+      router.push("/dashboard")
+    } catch (err: any) {
+      setError(err.message || "Invalid credentials")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -66,7 +76,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="name@company.com"
+                placeholder="admin@example.com"
                 className="pl-10"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

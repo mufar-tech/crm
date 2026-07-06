@@ -1,12 +1,18 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { DollarSign, TrendingUp, BarChart3, Users, Building2, GripVertical } from "lucide-react"
+import { useState, useMemo, useEffect } from "react"
+import { DollarSign, TrendingUp, BarChart3, Users, Building2, GripVertical, Loader2, Download, FileSpreadsheet, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Select,
   SelectContent,
@@ -14,9 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { mockPipelineItems } from "@/data/mock-data"
+import { useAuth } from "@/contexts/auth-context"
 import type { PipelineStage } from "@/types"
 import { formatCurrency, getStatusColor } from "@/lib/utils"
+import { exportData, type ExportFormat } from "@/lib/export-data"
 
 const stages: PipelineStage[] = ["Lead", "Qualification", "Discovery", "Proposal", "Negotiation", "Won", "Lost"]
 
@@ -71,15 +78,35 @@ const stageTextColors: Record<PipelineStage, string> = {
 }
 
 export default function PipelinePage() {
-  const [items, setItems] = useState(mockPipelineItems)
+  const [items, setItems] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [draggingId, setDraggingId] = useState<string | null>(null)
+  const { fetchWithAuth } = useAuth()
+
+  useEffect(() => {
+    fetchWithAuth("/api/opportunities")
+      .then((data: any[]) => {
+        const mapped = data.map((o: any) => ({
+          id: o.id || o._id,
+          title: o.name,
+          value: o.dealValue,
+          company: o.customer,
+          owner: o.owner,
+          stage: o.stage,
+        }))
+        setItems(mapped)
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
 
   const columns = useMemo(() => {
     const map: Record<PipelineStage, typeof items> = {
       Lead: [], Qualification: [], Discovery: [], Proposal: [], Negotiation: [], Won: [], Lost: [],
     }
     for (const item of items) {
-      if (map[item.stage]) map[item.stage].push(item)
+      const stage = item.stage as PipelineStage
+      if (map[stage]) map[stage].push(item)
     }
     return map
   }, [items])
@@ -89,8 +116,28 @@ export default function PipelinePage() {
     [items]
   )
 
+  const stageAnalytics = useMemo(() => {
+    return stages.map((stage) => {
+      const stageItems = columns[stage]
+      const totalDeals = stageItems.length
+      const totalValue = stageItems.reduce((sum: number, i: any) => sum + i.value, 0)
+      const avgValue = totalDeals > 0 ? totalValue / totalDeals : 0
+      return { stage, totalDeals, totalValue, avgValue }
+    })
+  }, [columns])
+
+  const dealCols = [
+    { header: "Title", accessor: (r: any) => r.title },
+    { header: "Stage", accessor: (r: any) => r.stage },
+    { header: "Value", accessor: (r: any) => r.value },
+    { header: "Company", accessor: (r: any) => r.company },
+    { header: "Owner", accessor: (r: any) => r.owner },
+  ]
+
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
+
   function moveToStage(id: string, stage: PipelineStage) {
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, stage } : i)))
+    setItems((prev) => prev.map((i) => ((i.id || i._id) === id ? { ...i, stage } : i)))
   }
 
   function handleDragStart(id: string) {
@@ -108,16 +155,6 @@ export default function PipelinePage() {
     setDraggingId(null)
   }
 
-  const stageAnalytics = useMemo(() => {
-    return stages.map((stage) => {
-      const stageItems = columns[stage]
-      const totalDeals = stageItems.length
-      const totalValue = stageItems.reduce((sum, i) => sum + i.value, 0)
-      const avgValue = totalDeals > 0 ? totalValue / totalDeals : 0
-      return { stage, totalDeals, totalValue, avgValue }
-    })
-  }, [columns])
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -133,10 +170,38 @@ export default function PipelinePage() {
             <span className="font-medium text-gray-900">{formatCurrency(totalPipelineValue)}</span>
             <span>total pipeline</span>
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem onClick={() =>
+                exportData(items, dealCols, "csv", "Pipeline Deals", "pipeline-deals.csv")
+              }>
+                <FileText className="mr-2 h-4 w-4" />
+                CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() =>
+                exportData(items, dealCols, "xlsx", "Pipeline Deals", "pipeline-deals.xlsx")
+              }>
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() =>
+                exportData(items, dealCols, "pdf", "Sales Pipeline Report", "pipeline-deals.pdf")
+              }>
+                <FileText className="mr-2 h-4 w-4" />
+                PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      <ScrollArea className="w-full overflow-x-auto pb-4">
+      <div className="w-full overflow-x-auto pb-4">
         <div className="flex gap-4 min-w-[1400px]">
           {stages.map((stage) => {
             const stageItems = columns[stage]
@@ -162,9 +227,9 @@ export default function PipelinePage() {
                 <div className="space-y-3 min-h-[200px]">
                   {stageItems.map((item) => (
                     <div
-                      key={item.id}
+                      key={item.id || item._id}
                       draggable
-                      onDragStart={() => handleDragStart(item.id)}
+                      onDragStart={() => handleDragStart(item.id || item._id)}
                       onDragEnd={handleDragEnd}
                       className={`rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-200 cursor-grab active:cursor-grabbing border-l-4 ${stageAccentColors[stage]} group`}
                     >
@@ -200,7 +265,7 @@ export default function PipelinePage() {
             )
           })}
         </div>
-      </ScrollArea>
+      </div>
 
       <Card>
         <CardContent className="p-0">

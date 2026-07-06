@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -9,10 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { mockActivities, mockTeamMembers } from "@/data/mock-data"
 import { formatDate, getInitials } from "@/lib/utils"
+import { useAuth } from "@/contexts/auth-context"
 import type { Activity } from "@/types"
-import { Plus, Phone, Mail, Calendar, Bell, FileText, CheckSquare, X, Clock, ArrowRight, Filter } from "lucide-react"
+import { Plus, Phone, Mail, Calendar, Bell, FileText, CheckSquare, X, Clock, ArrowRight, Filter, Loader2 } from "lucide-react"
 
 const activityTypes = ["All", "Call", "Email", "Meeting", "Follow-up", "Note", "Task"] as const
 const statuses = ["All", "Completed", "Scheduled", "Overdue"] as const
@@ -43,8 +43,8 @@ const emptyActivity: Omit<Activity, "id" | "createdAt"> = {
   date: new Date().toISOString().slice(0, 16),
 }
 
-function groupByDate(activities: Activity[]) {
-  const groups: Record<string, Activity[]> = {}
+function groupByDate(activities: any[]) {
+  const groups: Record<string, any[]> = {}
   for (const act of activities) {
     const key = formatDate(act.date)
     if (!groups[key]) groups[key] = []
@@ -58,8 +58,22 @@ export default function ActivitiesPage() {
   const [statusFilter, setStatusFilter] = useState("All")
   const [search, setSearch] = useState("")
   const [formOpen, setFormOpen] = useState(false)
-  const [activities, setActivities] = useState<Activity[]>(mockActivities)
+  const [activities, setActivities] = useState<any[]>([])
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [form, setForm] = useState(emptyActivity)
+  const { fetchWithAuth } = useAuth()
+
+  useEffect(() => {
+    Promise.all([
+      fetchWithAuth("/api/activities"),
+      fetchWithAuth("/api/team"),
+    ]).then(([activitiesData, teamData]) => {
+      setActivities(activitiesData)
+      setTeamMembers(teamData)
+    }).catch(console.error)
+    .finally(() => setLoading(false))
+  }, [])
 
   const filtered = useMemo(() => {
     return activities.filter((a) => {
@@ -76,17 +90,23 @@ export default function ActivitiesPage() {
   const grouped = useMemo(() => groupByDate(filtered), [filtered])
 
   const getTeamMemberName = (id: string) => {
-    const m = mockTeamMembers.find((tm) => tm.id === id)
+    const m = teamMembers.find((tm: any) => tm.id === id)
     return m ? m.name : "Unassigned"
   }
 
-  const handleAdd = () => {
-    const newAct: Activity = {
-      ...form,
-      id: `act-${Date.now()}`,
-      createdAt: new Date().toISOString(),
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
+
+  const handleAdd = async () => {
+    try {
+      const created = await fetchWithAuth("/api/activities", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      setActivities((prev) => [created, ...prev])
+    } catch (e) {
+      console.error("Failed to add activity", e)
     }
-    setActivities((prev) => [newAct, ...prev])
     setForm(emptyActivity)
     setFormOpen(false)
   }
@@ -177,7 +197,7 @@ export default function ActivitiesPage() {
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockTeamMembers.map((m) => (
+                    {teamMembers.map((m: any) => (
                       <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -270,7 +290,7 @@ export default function ActivitiesPage() {
                     const iconColor = typeConfig[activity.type]?.color || "text-gray-600"
                     const iconBg = typeConfig[activity.type]?.bg || "bg-gray-100"
                     return (
-                      <Card key={activity.id} className="group relative overflow-hidden transition-all hover:shadow-md border-l-4" style={{ borderLeftColor: activity.status === "Completed" ? "#10b981" : activity.status === "Scheduled" ? "#3b82f6" : "#ef4444" }}>
+                      <Card key={activity.id || activity._id} className="group relative overflow-hidden transition-all hover:shadow-md border-l-4" style={{ borderLeftColor: activity.status === "Completed" ? "#10b981" : activity.status === "Scheduled" ? "#3b82f6" : "#ef4444" }}>
                         <CardContent className="p-3 sm:p-4">
                           <div className="flex items-start gap-2 sm:gap-4">
                             <div className={`flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -40,9 +40,10 @@ import {
   X,
   Filter,
   Users,
+  Loader2,
 } from "lucide-react"
-import { mockLeads, mockTeamMembers } from "@/data/mock-data"
 import { getStatusColor, formatDate } from "@/lib/utils"
+import { useAuth } from "@/contexts/auth-context"
 import type { Lead, LeadStatus } from "@/types"
 import Link from "next/link"
 
@@ -76,10 +77,24 @@ export default function LeadsPage() {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("All")
   const [sourceFilter, setSourceFilter] = useState<string>("All")
-  const [leads, setLeads] = useState<Lead[]>(mockLeads)
+  const [leads, setLeads] = useState<any[]>([])
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [formOpen, setFormOpen] = useState(false)
   const [form, setForm] = useState(emptyLead)
+  const { fetchWithAuth } = useAuth()
+
+  useEffect(() => {
+    Promise.all([
+      fetchWithAuth("/api/leads"),
+      fetchWithAuth("/api/team"),
+    ]).then(([leadsData, teamData]) => {
+      setLeads(leadsData)
+      setTeamMembers(teamData)
+    }).catch(console.error)
+    .finally(() => setLoading(false))
+  }, [])
 
   const filteredLeads = useMemo(() => {
     return leads.filter((lead) => {
@@ -94,21 +109,30 @@ export default function LeadsPage() {
     })
   }, [leads, search, statusFilter, sourceFilter])
 
-  const handleDelete = () => {
-    if (deleteId) {
-      setLeads((prev) => prev.filter((l) => l.id !== deleteId))
-      setDeleteId(null)
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
+
+  const handleDelete = async () => {
+    if (!deleteId) return
+    try {
+      await fetchWithAuth(`/api/leads/${deleteId}`, { method: "DELETE" })
+      setLeads((prev) => prev.filter((l) => (l.id || l._id) !== deleteId))
+    } catch (e) {
+      console.error("Failed to delete lead", e)
     }
+    setDeleteId(null)
   }
 
-  const handleAddLead = () => {
-    const newLead: Lead = {
-      ...form,
-      id: `lead-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+  const handleAddLead = async () => {
+    try {
+      const created = await fetchWithAuth("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      setLeads((prev) => [created, ...prev])
+    } catch (e) {
+      console.error("Failed to add lead", e)
     }
-    setLeads((prev) => [newLead, ...prev])
     setForm(emptyLead)
     setFormOpen(false)
   }
@@ -122,7 +146,7 @@ export default function LeadsPage() {
   const hasFilters = search || statusFilter !== "All" || sourceFilter !== "All"
 
   const getTeamMemberName = (id: string) => {
-    const member = mockTeamMembers.find((m) => m.id === id)
+    const member = teamMembers.find((m: any) => m.id === id)
     return member ? member.name : "Unassigned"
   }
 
@@ -248,7 +272,7 @@ export default function LeadsPage() {
                     <SelectValue placeholder="Assign to" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockTeamMembers.map((m) => (
+                    {teamMembers.map((m: any) => (
                       <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -357,7 +381,7 @@ export default function LeadsPage() {
                 </TableRow>
               ) : (
                 filteredLeads.map((lead) => (
-                  <TableRow key={lead.id}>
+                  <TableRow key={lead.id || lead._id}>
                     <TableCell>
                       <span className="font-medium text-gray-900">{lead.name}</span>
                     </TableCell>
@@ -381,7 +405,7 @@ export default function LeadsPage() {
                     <TableCell className="text-gray-600">{getTeamMemberName(lead.assignedTo)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1 sm:gap-2">
-                        <Link href={`/leads/${lead.id}`}>
+                        <Link href={`/dashboard/leads/${lead.id || lead._id}`}>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
                             <Eye className="h-4 w-4 text-gray-500" />
                           </Button>
@@ -390,7 +414,7 @@ export default function LeadsPage() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => setDeleteId(lead.id)}
+                          onClick={() => setDeleteId(lead.id || lead._id)}
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
