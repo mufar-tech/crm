@@ -118,7 +118,7 @@ export default function CompaniesPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search companies..."
-                className="pl-9"
+                  className="pl-9 w-full sm:max-w-xs"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -239,7 +239,7 @@ export default function CompaniesPage() {
       </Card>
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="w-[95vw] sm:w-full sm:max-w-lg">
+        <DialogContent className="w-[95vw] sm:w-full sm:max-w-lg p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Add Company</DialogTitle>
             <DialogDescription>Add a new company to your CRM.</DialogDescription>

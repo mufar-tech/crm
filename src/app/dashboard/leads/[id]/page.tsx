@@ -193,19 +193,19 @@ export default function LeadDetailPage() {
 
       <Tabs defaultValue="overview">
         <TabsList className="w-full overflow-x-auto flex-nowrap">
-          <TabsTrigger value="overview" className="gap-2">
+          <TabsTrigger value="overview" className="gap-2 shrink-0">
             <FileText className="h-4 w-4 shrink-0" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="activity" className="gap-2">
+          <TabsTrigger value="activity" className="gap-2 shrink-0">
             <Activity className="h-4 w-4 shrink-0" />
             Activity
           </TabsTrigger>
-          <TabsTrigger value="notes" className="gap-2">
+          <TabsTrigger value="notes" className="gap-2 shrink-0">
             <Edit3 className="h-4 w-4 shrink-0" />
             Notes
           </TabsTrigger>
-          <TabsTrigger value="communications" className="gap-2">
+          <TabsTrigger value="communications" className="gap-2 shrink-0">
             <MessageSquare className="h-4 w-4 shrink-0" />
             Communications
           </TabsTrigger>
@@ -218,7 +218,7 @@ export default function LeadDetailPage() {
                 <CardTitle className="text-base font-semibold">Lead Information</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-4">
                     <div>
                       <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Email</p>
@@ -280,7 +280,7 @@ export default function LeadDetailPage() {
               <CardHeader>
                 <CardTitle className="text-base font-semibold">Quick Stats</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-4 sm:p-6">
                 <div className="rounded-lg bg-blue-50 p-3">
                   <p className="text-xs text-blue-600 font-medium">Status</p>
                   <Badge className={`mt-1 ${getStatusColor(lead.status)}`} variant="secondary">
@@ -319,7 +319,7 @@ export default function LeadDetailPage() {
                         {index < relatedActivities.length - 1 && (
                           <div className="absolute left-[19px] top-10 h-full w-px bg-gray-200" />
                         )}
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100">
                           {getActivityIcon(activity.type)}
                         </div>
                         <div className="flex-1 min-w-0">

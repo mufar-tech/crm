@@ -90,7 +90,7 @@ export default function FormsIntegrationPage() {
       </div>
 
       <Card className="bg-gradient-to-r from-blue-50 via-purple-50 to-rose-50 border-0">
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-center sm:justify-between gap-4">
             {flowSteps.map((step, idx) => (
               <div key={step.label} className="flex items-center gap-3 flex-1 min-w-[160px]">
@@ -120,7 +120,7 @@ export default function FormsIntegrationPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {statsCards.map((stat) => (
           <Card key={stat.label}>
             <CardContent className="p-4 flex items-center gap-4">

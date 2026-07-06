@@ -84,7 +84,7 @@ export default function ContactDetailPage() {
 
       <Card className="overflow-hidden">
         <div className="h-24 bg-gradient-to-r from-blue-600 to-purple-600" />
-        <CardContent className="relative px-6 pb-6 pt-0">
+        <CardContent className="relative p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between -mt-10">
             <div className="flex items-end gap-4">
               <Avatar className="h-20 w-20 border-4 border-white shadow-lg">
@@ -110,7 +110,7 @@ export default function ContactDetailPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
@@ -194,7 +194,7 @@ export default function ContactDetailPage() {
         </Card>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
@@ -219,7 +219,7 @@ export default function ContactDetailPage() {
                       )}
                       <div
                         className={cn(
-                          "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
                           activityColorMap[activity.type] || "bg-gray-100 text-gray-700"
                         )}
                       >

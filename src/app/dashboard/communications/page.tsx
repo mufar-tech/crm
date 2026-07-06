@@ -95,7 +95,7 @@ export default function CommunicationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Communications</h1>
           <p className="text-sm text-gray-500 mt-1">View all your team conversations in one place</p>
@@ -107,12 +107,12 @@ export default function CommunicationsPage() {
               New Communication
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-xl">
+          <DialogContent className="w-[95vw] sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>New Communication</DialogTitle>
               <DialogDescription>Log a new communication entry.</DialogDescription>
             </DialogHeader>
-            <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 py-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Type</label>
                 <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as Communication["type"] })}>
@@ -173,10 +173,10 @@ export default function CommunicationsPage() {
 
       <Card>
         <CardContent className="p-3 sm:p-4">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <Input placeholder="Search communications..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+              <Input placeholder="Search communications..." className="pl-9 w-full" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             {hasFilters && (
               <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
@@ -236,7 +236,7 @@ export default function CommunicationsPage() {
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex items-center gap-2 min-w-0">
                               <p className="text-sm font-semibold text-gray-900 truncate">{comm.subject}</p>
-                              <Badge className={`shrink-0 text-[10px] font-medium px-2 py-0.5 border ${typeBadgeColors[comm.type] || ""}`}>
+                              <Badge className={`shrink-0 text-[9px] sm:text-[10px] font-medium px-1.5 sm:px-2 py-0.5 border ${typeBadgeColors[comm.type] || ""}`}>
                                 {comm.type}
                               </Badge>
                             </div>

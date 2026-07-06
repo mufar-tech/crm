@@ -130,14 +130,14 @@ export default function ContactsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search contacts..."
-                className="pl-9"
+                  className="pl-9 w-full sm:max-w-xs"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
             <div className="flex items-center gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[140px]">
+                <SelectTrigger className="w-full sm:w-[160px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -256,7 +256,7 @@ export default function ContactsPage() {
       </Card>
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="w-[95vw] sm:w-full sm:max-w-lg">
+        <DialogContent className="w-[95vw] sm:w-full sm:max-w-lg p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Add Contact</DialogTitle>
             <DialogDescription>Add a new contact to your CRM.</DialogDescription>

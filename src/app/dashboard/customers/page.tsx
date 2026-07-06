@@ -67,11 +67,11 @@ export default function CustomersPage() {
 
       <Card>
         <CardContent className="p-4">
-          <div className="relative max-w-md">
+          <div className="relative w-full max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
               placeholder="Search customers by name, email or company..."
-              className="pl-9"
+                  className="pl-9 w-full sm:max-w-xs"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -90,7 +90,7 @@ export default function CustomersPage() {
               </p>
             </div>
           ) : (
-            <Table>
+            <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>

@@ -158,7 +158,7 @@ export default function AIPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {aiCapabilities.map((capability) => (
           <Card key={capability.title} className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
             <div className={cn(

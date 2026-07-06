@@ -140,7 +140,7 @@ export default function LeadsPage() {
               Add Lead
             </Button>
           </DialogTrigger>
-          <DialogContent className="w-[95vw] sm:w-full sm:max-w-lg">
+          <DialogContent className="w-[95vw] sm:w-full sm:max-w-lg p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle>Add New Lead</DialogTitle>
               <DialogDescription>Fill in the lead details below.</DialogDescription>
@@ -283,7 +283,7 @@ export default function LeadsPage() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder="Search leads by name, company or email..."
-                className="pl-9"
+                  className="pl-9 w-full sm:max-w-xs"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -380,7 +380,7 @@ export default function LeadsPage() {
                     </TableCell>
                     <TableCell className="text-gray-600">{getTeamMemberName(lead.assignedTo)}</TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-1 sm:gap-2">
                         <Link href={`/leads/${lead.id}`}>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
                             <Eye className="h-4 w-4 text-gray-500" />
