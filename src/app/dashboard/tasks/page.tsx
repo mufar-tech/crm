@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,10 +11,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { mockTasks, mockTeamMembers } from "@/data/mock-data"
 import { formatDate } from "@/lib/utils"
+import { useAuth } from "@/contexts/auth-context"
 import type { Task } from "@/types"
-import { Plus, Search, Trash2, CheckSquare, ClipboardList, AlertCircle, CheckCircle2, X, Clock, ArrowUp, Zap } from "lucide-react"
+import { Plus, Search, Trash2, CheckSquare, ClipboardList, AlertCircle, CheckCircle2, X, Clock, ArrowUp, Zap, Loader2 } from "lucide-react"
 
 const priorities = ["All", "Low", "Medium", "High", "Urgent"] as const
 const taskStatuses = ["All", "Pending", "In Progress", "Completed", "Cancelled"] as const
@@ -48,11 +48,25 @@ export default function TasksPage() {
   const [search, setSearch] = useState("")
   const [priorityFilter, setPriorityFilter] = useState("All")
   const [statusFilter, setStatusFilter] = useState("All")
-  const [tasks, setTasks] = useState<Task[]>(mockTasks)
+  const [tasks, setTasks] = useState<any[]>([])
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [formOpen, setFormOpen] = useState(false)
-  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [editingTask, setEditingTask] = useState<any>(null)
   const [form, setForm] = useState(emptyTask)
+  const { fetchWithAuth } = useAuth()
+
+  useEffect(() => {
+    Promise.all([
+      fetchWithAuth("/api/tasks"),
+      fetchWithAuth("/api/team"),
+    ]).then(([tasksData, teamData]) => {
+      setTasks(tasksData)
+      setTeamMembers(teamData)
+    }).catch(console.error)
+    .finally(() => setLoading(false))
+  }, [])
 
   const filtered = useMemo(() => {
     return tasks.filter((t) => {
@@ -71,9 +85,11 @@ export default function TasksPage() {
   }), [tasks])
 
   const getTeamMemberName = (id: string) => {
-    const m = mockTeamMembers.find((tm) => tm.id === id)
+    const m = teamMembers.find((tm: any) => tm.id === id)
     return m ? m.name : "Unassigned"
   }
+
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
@@ -86,20 +102,52 @@ export default function TasksPage() {
 
   const toggleSelectAll = () => {
     if (selected.size === filtered.length) setSelected(new Set())
-    else setSelected(new Set(filtered.map((t) => t.id)))
+    else setSelected(new Set(filtered.map((t) => t.id || t._id)))
   }
 
-  const toggleComplete = (id: string) => {
-    setTasks((prev) => prev.map((t) => t.id === id ? { ...t, status: t.status === "Completed" ? "Pending" : "Completed" as Task["status"] } : t))
+  const toggleComplete = async (id: string) => {
+    try {
+      const task = tasks.find((t) => (t.id || t._id) === id)
+      if (!task) return
+      const newStatus = task.status === "Completed" ? "Pending" : "Completed"
+      const updated = await fetchWithAuth(`/api/tasks/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      setTasks((prev) => prev.map((t) => ((t.id || t._id) === id ? updated : t)))
+    } catch (e) {
+      console.error("Failed to toggle task", e)
+    }
   }
 
-  const handleBulkComplete = () => {
-    setTasks((prev) => prev.map((t) => selected.has(t.id) ? { ...t, status: "Completed" as Task["status"] } : t))
+  const handleBulkComplete = async () => {
+    const ids = [...selected]
+    try {
+      await Promise.all(ids.map((id) =>
+        fetchWithAuth(`/api/tasks/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "Completed" }),
+        })
+      ))
+      setTasks((prev) => prev.map((t) => selected.has(t.id || t._id) ? { ...t, status: "Completed" } : t))
+    } catch (e) {
+      console.error("Failed to bulk complete", e)
+    }
     setSelected(new Set())
   }
 
-  const handleBulkDelete = () => {
-    setTasks((prev) => prev.filter((t) => !selected.has(t.id)))
+  const handleBulkDelete = async () => {
+    const ids = [...selected]
+    try {
+      await Promise.all(ids.map((id) =>
+        fetchWithAuth(`/api/tasks/${id}`, { method: "DELETE" })
+      ))
+      setTasks((prev) => prev.filter((t) => !selected.has(t.id || t._id)))
+    } catch (e) {
+      console.error("Failed to bulk delete", e)
+    }
     setSelected(new Set())
   }
 
@@ -118,16 +166,25 @@ export default function TasksPage() {
     setFormOpen(true)
   }
 
-  const handleSave = () => {
-    if (editingTask) {
-      setTasks((prev) => prev.map((t) => t.id === editingTask.id ? { ...t, ...form } : t))
-    } else {
-      const newTask: Task = {
-        ...form,
-        id: `task-${Date.now()}`,
-        createdAt: new Date().toISOString(),
+  const handleSave = async () => {
+    try {
+      if (editingTask) {
+        const updated = await fetchWithAuth(`/api/tasks/${editingTask.id || editingTask._id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        })
+        setTasks((prev) => prev.map((t) => ((t.id || t._id) === (editingTask.id || editingTask._id) ? updated : t)))
+      } else {
+        const created = await fetchWithAuth("/api/tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        })
+        setTasks((prev) => [created, ...prev])
       }
-      setTasks((prev) => [newTask, ...prev])
+    } catch (e) {
+      console.error("Failed to save task", e)
     }
     setForm(emptyTask)
     setEditingTask(null)
@@ -269,13 +326,13 @@ export default function TasksPage() {
                 </TableRow>
               ) : (
                 filtered.map((task) => (
-                  <TableRow key={task.id} className={selected.has(task.id) ? "bg-blue-50/50" : ""}>
+                  <TableRow key={task.id || task._id} className={selected.has(task.id || task._id) ? "bg-blue-50/50" : ""}>
                     <TableCell>
-                      <Checkbox checked={selected.has(task.id)} onCheckedChange={() => toggleSelect(task.id)} />
+                      <Checkbox checked={selected.has(task.id || task._id)} onCheckedChange={() => toggleSelect(task.id || task._id)} />
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <button onClick={() => toggleComplete(task.id)} className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${task.status === "Completed" ? "bg-emerald-500 border-emerald-500 text-white" : "border-gray-300 hover:border-emerald-400"}`}>
+                        <button onClick={() => toggleComplete(task.id || task._id)} className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${task.status === "Completed" ? "bg-emerald-500 border-emerald-500 text-white" : "border-gray-300 hover:border-emerald-400"}`}>
                           {task.status === "Completed" && <CheckCircle2 className="h-3.5 w-3.5" />}
                         </button>
                         <div>
@@ -294,7 +351,7 @@ export default function TasksPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-[10px] font-medium text-gray-500">
-                          {getTeamMemberName(task.assignedTo).split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
+                          {getTeamMemberName(task.assignedTo).split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)}
                         </div>
                         <span className="text-sm text-gray-600">{getTeamMemberName(task.assignedTo)}</span>
                       </div>
@@ -376,7 +433,7 @@ export default function TasksPage() {
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockTeamMembers.map((m) => (
+                  {teamMembers.map((m: any) => (
                     <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                   ))}
                 </SelectContent>

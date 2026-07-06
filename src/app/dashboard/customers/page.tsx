@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import Link from "next/link"
-import { Search, Users, Building2, ArrowRight } from "lucide-react"
+import { Search, Users, Building2, ArrowRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -15,34 +15,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { mockLeads, mockOpportunities, mockActivities } from "@/data/mock-data"
+import { useAuth } from "@/contexts/auth-context"
 import { formatCurrency, formatDate, cn } from "@/lib/utils"
 
 export default function CustomersPage() {
   const [search, setSearch] = useState("")
+  const [customers, setCustomers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { fetchWithAuth } = useAuth()
 
-  const customers = useMemo(() => {
-    const wonLeads = mockLeads.filter((l) => l.status === "Won")
-    return wonLeads.map((lead) => {
-      const opps = mockOpportunities.filter(
-        (o) => o.customer === lead.company && o.stage === "Won"
-      )
-      const totalDeals = opps.length
-      const totalRevenue = opps.reduce((sum, o) => sum + o.dealValue, 0)
-      const lastActivity = mockActivities
-        .filter((a) => a.relatedTo === lead.id || opps.some((o) => o.id === a.relatedTo))
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
-      return {
-        id: lead.id,
-        name: lead.name,
-        email: lead.email,
-        company: lead.company,
-        totalDeals,
-        totalRevenue,
-        lastActivity: lastActivity?.date || lead.updatedAt,
-        status: lead.status,
-      }
-    }).sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime())
+  useEffect(() => {
+    fetchWithAuth("/api/customers").then(setCustomers).catch(console.error).finally(() => setLoading(false))
   }, [])
 
   const filtered = useMemo(() => {
@@ -50,11 +33,13 @@ export default function CustomersPage() {
     const q = search.toLowerCase()
     return customers.filter(
       (c) =>
-        c.name.toLowerCase().includes(q) ||
-        c.email.toLowerCase().includes(q) ||
-        c.company.toLowerCase().includes(q)
+        c.name?.toLowerCase().includes(q) ||
+        c.company?.toLowerCase().includes(q) ||
+        c.email?.toLowerCase().includes(q)
     )
   }, [customers, search])
+
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
 
   return (
     <div className="space-y-6">
@@ -105,7 +90,7 @@ export default function CustomersPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map((customer) => (
-                  <TableRow key={customer.id} className="group">
+                  <TableRow key={customer.id || customer._id} className="group">
                     <TableCell>
                       <span className="font-medium text-gray-900">{customer.name}</span>
                     </TableCell>
@@ -125,7 +110,7 @@ export default function CustomersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Link href={`/customers/${customer.id}`}>
+                      <Link href={`/dashboard/customers/${customer.id || customer._id}`}>
                         <Button variant="ghost" size="sm" className="gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           View Profile
                           <ArrowRight className="h-3.5 w-3.5" />

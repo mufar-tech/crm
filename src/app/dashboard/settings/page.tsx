@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   User,
   Settings,
@@ -20,6 +20,7 @@ import {
   RefreshCw,
   Monitor,
   LogOut,
+  Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -39,8 +40,8 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
-import { mockIntegrations } from "@/data/mock-data"
 import { getInitials, cn } from "@/lib/utils"
+import { useAuth } from "@/contexts/auth-context"
 import Link from "next/link"
 
 const leadStatuses = ["New", "Contacted", "Qualified", "Proposal Sent", "Negotiation", "Won", "Lost"]
@@ -603,12 +604,25 @@ function APIKeysTab() {
 }
 
 function IntegrationsTab() {
+  const [integrations, setIntegrations] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { fetchWithAuth } = useAuth()
+
+  useEffect(() => {
+    fetchWithAuth("/api/integrations")
+      .then(setIntegrations)
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {integrationCategories.slice(0, 4).map((cat) => {
-          const count = mockIntegrations.filter((i) => i.category === cat.name).length
-          const connected = mockIntegrations.filter((i) => i.category === cat.name && i.connected).length
+          const count = integrations.filter((i) => i.category === cat.name).length
+          const connected = integrations.filter((i) => i.category === cat.name && i.connected).length
           return (
             <Link key={cat.name} href="/dashboard/integrations" className="block">
               <Card className="hover:shadow-md transition-shadow cursor-pointer">

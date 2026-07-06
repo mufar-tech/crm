@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import Link from "next/link"
-import { Search, Plus, MoreHorizontal, Eye, Trash2, UserPlus, Users } from "lucide-react"
-import { mockContacts } from "@/data/mock-data"
+import { Search, Plus, MoreHorizontal, Eye, Trash2, UserPlus, Users, Loader2 } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
 import type { Contact } from "@/types"
 import { getInitials, formatDate, cn } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -55,7 +55,13 @@ export default function ContactsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [addOpen, setAddOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  const [contacts, setContacts] = useState(mockContacts)
+  const [contacts, setContacts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { fetchWithAuth } = useAuth()
+
+  useEffect(() => {
+    fetchWithAuth("/api/contacts").then(setContacts).catch(console.error).finally(() => setLoading(false))
+  }, [])
 
   const [form, setForm] = useState({
     firstName: "",
@@ -79,34 +85,34 @@ export default function ContactsPage() {
     })
   }, [contacts, search, statusFilter])
 
-  function handleAdd() {
-    const tags = form.tags
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean)
-    const newContact: Contact = {
-      id: `contact-${Date.now()}`,
-      firstName: form.firstName,
-      lastName: form.lastName,
-      email: form.email,
-      phone: form.phone,
-      jobTitle: form.jobTitle,
-      company: form.company,
-      industry: "",
-      avatar: "",
-      status: "Active",
-      tags,
-      notes: form.notes,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
+
+  async function handleAdd() {
+    try {
+      const tags = form.tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean)
+      const created = await fetchWithAuth("/api/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, tags, status: "Active" }),
+      })
+      setContacts((prev) => [created, ...prev])
+    } catch (e) {
+      console.error("Failed to add contact", e)
     }
-    setContacts((prev) => [newContact, ...prev])
     setForm({ firstName: "", lastName: "", email: "", phone: "", jobTitle: "", company: "", tags: "", notes: "" })
     setAddOpen(false)
   }
 
-  function handleDelete(id: string) {
-    setContacts((prev) => prev.filter((c) => c.id !== id))
+  async function handleDelete(id: string) {
+    try {
+      await fetchWithAuth(`/api/contacts/${id}`, { method: "DELETE" })
+      setContacts((prev) => prev.filter((c) => (c.id || c._id) !== id))
+    } catch (e) {
+      console.error("Failed to delete contact", e)
+    }
     setDeleteConfirm(null)
   }
 
@@ -184,7 +190,7 @@ export default function ContactsPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map((contact) => (
-                  <TableRow key={contact.id}>
+                  <TableRow key={contact.id || contact._id}>
                     <TableCell className="pl-6">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
@@ -211,7 +217,7 @@ export default function ContactsPage() {
                         {contact.tags.length === 0 ? (
                           <span className="text-gray-400 text-xs">—</span>
                         ) : (
-                          contact.tags.map((tag) => (
+                          contact.tags.map((tag: string) => (
                             <span
                               key={tag}
                               className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700"
@@ -231,7 +237,7 @@ export default function ContactsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40">
                           <DropdownMenuItem asChild>
-                            <Link href={`/contacts/${contact.id}`} className="flex items-center">
+                            <Link href={`/dashboard/contacts/${contact.id || contact._id}`} className="flex items-center">
                               <Eye className="mr-2 h-4 w-4" />
                               View
                             </Link>
@@ -239,7 +245,7 @@ export default function ContactsPage() {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             className="text-red-600 focus:text-red-600"
-                            onClick={() => setDeleteConfirm(contact.id)}
+                            onClick={() => setDeleteConfirm(contact.id || contact._id)}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete

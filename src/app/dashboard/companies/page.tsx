@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import Link from "next/link"
-import { Search, Plus, MoreHorizontal, Eye, Trash2, Building2, Globe, Target } from "lucide-react"
-import { mockCompanies } from "@/data/mock-data"
+import { Search, Plus, MoreHorizontal, Eye, Trash2, Building2, Globe, Target, Loader2 } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
 import type { Company } from "@/types"
 import { getInitials, formatNumber } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -47,7 +47,13 @@ export default function CompaniesPage() {
   const [search, setSearch] = useState("")
   const [addOpen, setAddOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  const [companies, setCompanies] = useState(mockCompanies)
+  const [companies, setCompanies] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { fetchWithAuth } = useAuth()
+
+  useEffect(() => {
+    fetchWithAuth("/api/companies").then(setCompanies).catch(console.error).finally(() => setLoading(false))
+  }, [])
 
   const [form, setForm] = useState({
     name: "",
@@ -70,31 +76,30 @@ export default function CompaniesPage() {
     )
   }, [companies, search])
 
-  function handleAdd() {
-    const newCompany: Company = {
-      id: `comp-${Date.now()}`,
-      name: form.name,
-      industry: form.industry,
-      website: form.website,
-      revenue: form.revenue,
-      employees: Number(form.employees) || 0,
-      address: form.address,
-      city: form.city,
-      country: form.country,
-      phone: form.phone,
-      email: form.email,
-      status: "Active",
-      contacts: 0,
-      opportunities: 0,
-      createdAt: new Date().toISOString(),
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
+
+  async function handleAdd() {
+    try {
+      const created = await fetchWithAuth("/api/companies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, employees: Number(form.employees) || 0, status: "Active" }),
+      })
+      setCompanies((prev) => [created, ...prev])
+    } catch (e) {
+      console.error("Failed to add company", e)
     }
-    setCompanies((prev) => [newCompany, ...prev])
     setForm({ name: "", industry: "", website: "", revenue: "", employees: "", address: "", city: "", country: "", phone: "", email: "" })
     setAddOpen(false)
   }
 
-  function handleDelete(id: string) {
-    setCompanies((prev) => prev.filter((c) => c.id !== id))
+  async function handleDelete(id: string) {
+    try {
+      await fetchWithAuth(`/api/companies/${id}`, { method: "DELETE" })
+      setCompanies((prev) => prev.filter((c) => (c.id || c._id) !== id))
+    } catch (e) {
+      console.error("Failed to delete company", e)
+    }
     setDeleteConfirm(null)
   }
 
@@ -161,7 +166,7 @@ export default function CompaniesPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map((company) => (
-                  <TableRow key={company.id}>
+                  <TableRow key={company.id || company._id}>
                     <TableCell className="pl-6">
                       <div className="flex items-center gap-3">
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-700 font-semibold text-sm">
@@ -214,7 +219,7 @@ export default function CompaniesPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40">
                           <DropdownMenuItem asChild>
-                            <Link href={`/companies/${company.id}`} className="flex items-center">
+                            <Link href={`/dashboard/companies/${company.id || company._id}`} className="flex items-center">
                               <Eye className="mr-2 h-4 w-4" />
                               View
                             </Link>
@@ -222,7 +227,7 @@ export default function CompaniesPage() {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             className="text-red-600 focus:text-red-600"
-                            onClick={() => setDeleteConfirm(company.id)}
+                            onClick={() => setDeleteConfirm(company.id || company._id)}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete

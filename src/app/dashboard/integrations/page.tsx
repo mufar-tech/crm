@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import {
   Search,
   Plug,
@@ -13,6 +13,7 @@ import {
   Code,
   Link2,
   Unlink,
+  Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -21,7 +22,7 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { mockIntegrations } from "@/data/mock-data"
+import { useAuth } from "@/contexts/auth-context"
 import type { Integration } from "@/types"
 import { cn } from "@/lib/utils"
 
@@ -38,7 +39,7 @@ const categoryMeta: Record<string, { icon: typeof Plug; color: string; bg: strin
 
 const categoryOrder = ["Mufar Native", "Email", "Calendar", "Communication", "Video Conferencing", "Automation", "Developer Tools", "CRM"]
 
-function IntegrationCard({ integration }: { integration: Integration }) {
+function IntegrationCard({ integration, onToggle }: { integration: Integration; onToggle: (id: string, connected: boolean) => void }) {
   const [connected, setConnected] = useState(integration.connected)
   const meta = categoryMeta[integration.category]
   const Icon = meta?.icon || Plug
@@ -79,7 +80,7 @@ function IntegrationCard({ integration }: { integration: Integration }) {
               variant="outline"
               size="sm"
               className="gap-1.5 text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
-              onClick={() => setConnected(false)}
+              onClick={() => { setConnected(false); onToggle(integration.id, false) }}
             >
               <Unlink className="h-3.5 w-3.5" />
               Disconnect
@@ -89,7 +90,7 @@ function IntegrationCard({ integration }: { integration: Integration }) {
               variant="default"
               size="sm"
               className="gap-1.5"
-              onClick={() => setConnected(true)}
+              onClick={() => { setConnected(true); onToggle(integration.id, true) }}
             >
               <Link2 className="h-3.5 w-3.5" />
               Connect
@@ -104,9 +105,16 @@ function IntegrationCard({ integration }: { integration: Integration }) {
 export default function IntegrationsPage() {
   const [search, setSearch] = useState("")
   const [activeCategory, setActiveCategory] = useState("all")
+  const [integrations, setIntegrations] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { fetchWithAuth } = useAuth()
+
+  useEffect(() => {
+    fetchWithAuth("/api/integrations").then(setIntegrations).catch(console.error).finally(() => setLoading(false))
+  }, [])
 
   const filtered = useMemo(() => {
-    let list = mockIntegrations
+    let list = integrations
     if (search) {
       const q = search.toLowerCase()
       list = list.filter((i) => i.name.toLowerCase().includes(q) || i.description.toLowerCase().includes(q))
@@ -115,10 +123,10 @@ export default function IntegrationsPage() {
       list = list.filter((i) => i.category === activeCategory)
     }
     return list
-  }, [search, activeCategory])
+  }, [search, activeCategory, integrations])
 
   const grouped = useMemo(() => {
-    const map: Record<string, Integration[]> = {}
+    const map: Record<string, any[]> = {}
     for (const cat of categoryOrder) {
       const items = filtered.filter((i) => i.category === cat)
       if (items.length > 0) map[cat] = items
@@ -126,7 +134,22 @@ export default function IntegrationsPage() {
     return map
   }, [filtered])
 
-  const totalConnected = mockIntegrations.filter((i) => i.connected).length
+  const totalConnected = integrations.filter((i) => i.connected).length
+
+  const handleToggle = async (id: string, connected: boolean) => {
+    try {
+      await fetchWithAuth(`/api/integrations/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connected }),
+      })
+      setIntegrations((prev) => prev.map((i) => ((i.id || i._id) === id ? { ...i, connected } : i)))
+    } catch (e) {
+      console.error("Failed to toggle integration", e)
+    }
+  }
+
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
 
   return (
     <div className="space-y-6">
@@ -134,7 +157,7 @@ export default function IntegrationsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Integrations</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {totalConnected} of {mockIntegrations.length} integrations connected
+            {totalConnected} of {integrations.length} integrations connected
           </p>
         </div>
         <Button variant="premium" className="gap-2">
@@ -190,7 +213,7 @@ export default function IntegrationsPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {items.map((integration) => (
-                  <IntegrationCard key={integration.id} integration={integration} />
+                  <IntegrationCard key={integration.id || integration._id} integration={integration} onToggle={handleToggle} />
                 ))}
               </div>
             </div>

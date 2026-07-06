@@ -10,9 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { mockCommunications } from "@/data/mock-data"
+import { useEffect } from "react"
+import { useAuth } from "@/contexts/auth-context"
 import { formatDate } from "@/lib/utils"
 import type { Communication } from "@/types"
+import { Loader2 } from "lucide-react"
 import { Plus, Mail, Video, Phone, StickyNote, MessageSquare, Search, ArrowRight, X, Inbox } from "lucide-react"
 
 const typeIcons: Record<string, typeof Mail> = {
@@ -56,8 +58,14 @@ export default function CommunicationsPage() {
   const [search, setSearch] = useState("")
   const [activeTab, setActiveTab] = useState("All")
   const [formOpen, setFormOpen] = useState(false)
-  const [comms, setComms] = useState<Communication[]>(mockCommunications)
+  const [comms, setComms] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [form, setForm] = useState(emptyComm)
+  const { fetchWithAuth } = useAuth()
+
+  useEffect(() => {
+    fetchWithAuth("/api/communications").then(setComms).catch(console.error).finally(() => setLoading(false))
+  }, [])
 
   const filtered = useMemo(() => {
     return comms.filter((c) => {
@@ -72,6 +80,8 @@ export default function CommunicationsPage() {
     })
   }, [comms, activeTab, search])
 
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
+
   const getTypeIcon = (type: string) => {
     const Icon = typeIcons[type] || Mail
     return <Icon className="h-5 w-5" />
@@ -79,13 +89,17 @@ export default function CommunicationsPage() {
 
   const getTypeColor = (type: string) => typeColors[type] || "bg-gray-100 text-gray-600"
 
-  const handleAdd = () => {
-    const newComm: Communication = {
-      ...form,
-      id: `comm-${Date.now()}`,
-      date: new Date().toISOString(),
+  const handleAdd = async () => {
+    try {
+      const created = await fetchWithAuth("/api/communications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      setComms((prev) => [created, ...prev])
+    } catch (e) {
+      console.error("Failed to add communication", e)
     }
-    setComms((prev) => [newComm, ...prev])
     setForm(emptyComm)
     setFormOpen(false)
   }
@@ -226,7 +240,7 @@ export default function CommunicationsPage() {
                 const Icon = typeIcons[comm.type] || Mail
                 const iconColor = getTypeColor(comm.type)
                 return (
-                  <Card key={comm.id} className="group transition-all hover:shadow-md hover:border-gray-300">
+                  <Card key={comm.id || comm._id} className="group transition-all hover:shadow-md hover:border-gray-300">
                     <CardContent className="p-3 sm:p-4">
                       <div className="flex items-start gap-4">
                         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconColor}`}>

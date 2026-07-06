@@ -16,6 +16,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   FileText,
+  FileSpreadsheet,
 } from "lucide-react"
 import {
   AreaChart,
@@ -53,8 +54,11 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { mockBillingInfo, mockRevenueData } from "@/data/mock-data"
+import { useEffect } from "react"
+import { useAuth } from "@/contexts/auth-context"
 import { formatCurrency, formatDate, formatNumber } from "@/lib/utils"
+import { Loader2 } from "lucide-react"
+import { exportData, type ExportFormat } from "@/lib/export-data"
 
 const statusColorMap: Record<string, "success" | "warning" | "destructive" | "secondary"> = {
   Paid: "success",
@@ -79,27 +83,54 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null
 }
 
-const monthlyRevenue = mockRevenueData.map((d) => ({ month: d.month, revenue: d.revenue }))
-
 export default function BillingPage() {
   const [filter, setFilter] = useState<string>("all")
+  const [invoices, setInvoices] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { fetchWithAuth } = useAuth()
+
+  useEffect(() => {
+    fetchWithAuth("/api/billing").then(setInvoices).catch(console.error).finally(() => setLoading(false))
+  }, [])
+
+  const monthlyRevenue = useMemo(() => {
+    const months: Record<string, number> = {}
+    invoices.forEach((inv) => {
+      if (inv.date) {
+        const m = inv.date.slice(0, 7)
+        months[m] = (months[m] || 0) + (inv.status === "Paid" ? inv.amount : 0)
+      }
+    })
+    return Object.entries(months).map(([month, revenue]) => ({ month, revenue }))
+  }, [invoices])
 
   const filteredInvoices = useMemo(() => {
-    if (filter === "all") return mockBillingInfo
-    return mockBillingInfo.filter((inv) => inv.status.toLowerCase() === filter.toLowerCase())
-  }, [filter])
+    if (filter === "all") return invoices
+    return invoices.filter((inv) => inv.status.toLowerCase() === filter.toLowerCase())
+  }, [filter, invoices])
 
-  const totalRevenue = mockBillingInfo
+  const totalRevenue = invoices
     .filter((inv) => inv.status === "Paid")
-    .reduce((sum, inv) => sum + inv.amount, 0)
+    .reduce((sum: number, inv) => sum + inv.amount, 0)
 
-  const outstanding = mockBillingInfo
+  const outstanding = invoices
     .filter((inv) => inv.status === "Pending" || inv.status === "Overdue")
-    .reduce((sum, inv) => sum + inv.amount, 0)
+    .reduce((sum: number, inv) => sum + inv.amount, 0)
 
-  const paidCount = mockBillingInfo.filter((inv) => inv.status === "Paid").length
-  const pendingCount = mockBillingInfo.filter((inv) => inv.status === "Pending").length
-  const overdueCount = mockBillingInfo.filter((inv) => inv.status === "Overdue").length
+  const paidCount = invoices.filter((inv) => inv.status === "Paid").length
+  const pendingCount = invoices.filter((inv) => inv.status === "Pending").length
+  const overdueCount = invoices.filter((inv) => inv.status === "Overdue").length
+
+  const invoiceCols = [
+    { header: "Invoice #", accessor: (r: any) => r.invoice },
+    { header: "Customer", accessor: (r: any) => r.customer },
+    { header: "Amount", accessor: (r: any) => r.amount },
+    { header: "Status", accessor: (r: any) => r.status },
+    { header: "Date", accessor: (r: any) => r.date },
+    { header: "Due Date", accessor: (r: any) => r.dueDate },
+  ]
+
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
 
   return (
     <div className="space-y-6">
@@ -232,10 +263,10 @@ export default function BillingPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {mockBillingInfo
+              {invoices
                 .filter((inv) => inv.status === "Pending" || inv.status === "Overdue")
                 .map((inv) => (
-                  <div key={inv.id} className="flex items-center justify-between">
+                  <div key={inv.id || inv._id} className="flex items-center justify-between">
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-gray-900 truncate">{inv.customer}</p>
                       <p className="text-xs text-gray-500 mt-0.5">{inv.invoice}</p>
@@ -251,7 +282,7 @@ export default function BillingPage() {
                     </div>
                   </div>
                 ))}
-              {mockBillingInfo.filter((inv) => inv.status === "Pending" || inv.status === "Overdue").length ===
+              {invoices.filter((inv) => inv.status === "Pending" || inv.status === "Overdue").length ===
                 0 && (
                 <p className="text-sm text-gray-500 text-center py-6">No outstanding payments</p>
               )}
@@ -277,10 +308,28 @@ export default function BillingPage() {
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm">
-                <Download className="mr-2 h-4 w-4" />
-                Export
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Download className="mr-2 h-4 w-4" />
+                    Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuItem onClick={() => exportData(invoices, invoiceCols, "csv", "Invoices", "invoices.csv")}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => exportData(invoices, invoiceCols, "xlsx", "Invoices", "invoices.xlsx")}>
+                    <FileSpreadsheet className="mr-2 h-4 w-4" />
+                    Excel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => exportData(invoices, invoiceCols, "pdf", "Invoices Report", "invoices.pdf")}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    PDF
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </CardHeader>
@@ -325,10 +374,34 @@ export default function BillingPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuItem>
-                          <Download className="mr-2 h-4 w-4" />
-                          Download
-                        </DropdownMenuItem>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                              <Download className="mr-2 h-4 w-4" />
+                              Download
+                            </DropdownMenuItem>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem onClick={() =>
+                              exportData([inv], invoiceCols, "csv", "Invoice", `invoice-${inv.invoice || inv.id || inv._id}.csv`)
+                            }>
+                              <FileText className="mr-2 h-4 w-4" />
+                              CSV
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() =>
+                              exportData([inv], invoiceCols, "xlsx", "Invoice", `invoice-${inv.invoice || inv.id || inv._id}.xlsx`)
+                            }>
+                              <FileSpreadsheet className="mr-2 h-4 w-4" />
+                              Excel
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() =>
+                              exportData([inv], invoiceCols, "pdf", `Invoice ${inv.invoice}`, `invoice-${inv.invoice || inv.id || inv._id}.pdf`)
+                            }>
+                              <FileText className="mr-2 h-4 w-4" />
+                              PDF
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                         <DropdownMenuItem>
                           <Send className="mr-2 h-4 w-4" />
                           Send Reminder

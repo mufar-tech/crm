@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import {
   Card,
   CardContent,
@@ -25,6 +26,7 @@ import {
   Clock,
   FileText,
   ChevronRight,
+  Loader2,
 } from "lucide-react"
 import {
   AreaChart,
@@ -40,15 +42,8 @@ import {
   BarChart,
   Bar,
 } from "recharts"
-import {
-  mockDashboardKPIs,
-  mockRevenueData,
-  mockLeadSourceData,
-  mockConversionData,
-  mockActivities,
-  mockTasks,
-} from "@/data/mock-data"
 import { formatDate, getStatusColor } from "@/lib/utils"
+import { useAuth } from "@/contexts/auth-context"
 
 const kpiIcons = [
   Users,
@@ -80,12 +75,25 @@ const CustomRechartsTooltip = ({ active, payload, label }: any) => {
 }
 
 export default function DashboardPage() {
-  const recentActivities = [...mockActivities]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5)
+  const [dashboardData, setDashboardData] = useState<any>({
+    kpis: [], revenueData: [], conversionData: [], leadSourceData: [], recentActivities: [], recentTasks: []
+  })
+  const [loading, setLoading] = useState(true)
+  const { fetchWithAuth } = useAuth()
 
-  const followUps = mockTasks.filter(
-    (t) => t.status === "Pending" || t.status === "In Progress"
+  useEffect(() => {
+    fetchWithAuth("/api/dashboard")
+      .then((data) => setDashboardData(data))
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
+
+  const { kpis, revenueData, leadSourceData, conversionData, recentActivities, recentTasks } = dashboardData
+
+  const followUps = recentTasks.filter(
+    (t: any) => t.status === "Pending" || t.status === "In Progress"
   )
 
   const ActivityIcon = ({ type }: { type: string }) => {
@@ -113,7 +121,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
-        {mockDashboardKPIs.map((kpi, index) => {
+        {kpis.map((kpi: any, index: number) => {
           const Icon = kpiIcons[index]
           return (
             <Card key={kpi.label} className="card-hover">
@@ -149,7 +157,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="w-full h-[200px] sm:h-[250px] md:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={mockRevenueData}>
+                <AreaChart data={revenueData}>
                   <defs>
                     <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3} />
@@ -201,7 +209,7 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={mockLeadSourceData}
+                    data={leadSourceData}
                     cx="50%"
                     cy="45%"
                     innerRadius={55}
@@ -210,7 +218,7 @@ export default function DashboardPage() {
                     dataKey="count"
                     nameKey="source"
                   >
-                    {mockLeadSourceData.map((_, index) => (
+                    {leadSourceData.map((_: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
                   </Pie>
@@ -219,7 +227,7 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             </div>
             <div className="mt-2 space-y-2">
-              {mockLeadSourceData.map((item, index) => (
+              {leadSourceData.map((item: any, index: number) => (
                 <div key={item.source} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <div
@@ -244,7 +252,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="w-full h-[200px] sm:h-[250px] md:h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={mockConversionData}>
+                <BarChart data={conversionData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                   <XAxis dataKey="stage" stroke="#94a3b8" fontSize={12} tickLine={false} />
                   <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
@@ -263,9 +271,9 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="p-4 sm:p-5 pb-4">
               <div className="space-y-3">
-                {recentActivities.map((activity) => {
+                {recentActivities.map((activity: any) => {
                   return (
-                    <div key={activity.id} className="flex items-start gap-3">
+                    <div key={activity.id || activity._id} className="flex items-start gap-3">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100">
                         <ActivityIcon type={activity.type} />
                       </div>
@@ -299,8 +307,8 @@ export default function DashboardPage() {
             <CardContent className="p-4 sm:p-5 pb-4">
               {followUps.length > 0 ? (
                 <div className="space-y-3">
-                  {followUps.slice(0, 5).map((task) => (
-                    <div key={task.id} className="flex items-start gap-3">
+                  {followUps.slice(0, 5).map((task: any) => (
+                    <div key={task.id || task._id} className="flex items-start gap-3">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100">
                         <Clock className="h-4 w-4 text-amber-600" />
                       </div>

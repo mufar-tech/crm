@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import {
   Users,
   UserPlus,
@@ -15,6 +15,7 @@ import {
   Mail,
   Phone,
   Building2,
+  Loader2,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -54,7 +55,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { mockTeamMembers } from "@/data/mock-data"
+import { useAuth } from "@/contexts/auth-context"
 import type { TeamMember, TeamRole } from "@/types"
 import { formatCurrency, formatDate, getInitials } from "@/lib/utils"
 
@@ -79,9 +80,15 @@ const allRoles: TeamRole[] = [
 ]
 
 export default function TeamPage() {
-  const [members, setMembers] = useState(mockTeamMembers)
+  const [members, setMembers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [inviteOpen, setInviteOpen] = useState(false)
   const [editRole, setEditRole] = useState<{ id: string; name: string; currentRole: TeamRole } | null>(null)
+  const { fetchWithAuth } = useAuth()
+
+  useEffect(() => {
+    fetchWithAuth("/api/team").then(setMembers).catch(console.error).finally(() => setLoading(false))
+  }, [])
 
   const [form, setForm] = useState({
     name: "",
@@ -94,36 +101,58 @@ export default function TeamPage() {
   const activeMembers = members.filter((m) => m.status === "Active").length
   const inactiveMembers = members.filter((m) => m.status === "Inactive").length
 
-  function handleInvite() {
-    const newMember: TeamMember = {
-      id: `tm-${Date.now()}`,
-      name: form.name,
-      email: form.email,
-      role: form.role,
-      avatar: "",
-      department: form.department,
-      leads: 0,
-      deals: 0,
-      revenue: 0,
-      status: "Active",
-      joinedAt: new Date().toISOString(),
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
+
+  async function handleInvite() {
+    try {
+      const created = await fetchWithAuth("/api/team", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          role: form.role,
+          department: form.department,
+          status: "Active",
+          joinedAt: new Date().toISOString(),
+        }),
+      })
+      setMembers((prev) => [created, ...prev])
+    } catch (e) {
+      console.error("Failed to invite member", e)
     }
-    setMembers((prev) => [newMember, ...prev])
     setForm({ name: "", email: "", role: "Sales Representative", department: "Sales" })
     setInviteOpen(false)
   }
 
-  function handleRoleChange(id: string, role: TeamRole) {
-    setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, role } : m)))
+  async function handleRoleChange(id: string, role: TeamRole) {
+    try {
+      const updated = await fetchWithAuth(`/api/team/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role }),
+      })
+      setMembers((prev) => prev.map((m) => ((m.id || m._id) === id ? updated : m)))
+    } catch (e) {
+      console.error("Failed to update role", e)
+    }
     setEditRole(null)
   }
 
-  function handleToggleStatus(id: string) {
-    setMembers((prev) =>
-      prev.map((m) =>
-        m.id === id ? { ...m, status: m.status === "Active" ? "Inactive" : "Active" } : m
-      )
-    )
+  async function handleToggleStatus(id: string) {
+    const member = members.find((m) => (m.id || m._id) === id)
+    if (!member) return
+    const newStatus = member.status === "Active" ? "Inactive" : "Active"
+    try {
+      const updated = await fetchWithAuth(`/api/team/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      setMembers((prev) => prev.map((m) => ((m.id || m._id) === id ? updated : m)))
+    } catch (e) {
+      console.error("Failed to toggle status", e)
+    }
   }
 
   return (
@@ -208,7 +237,7 @@ export default function TeamPage() {
               </TableHeader>
               <TableBody>
                 {members.map((member) => (
-                  <TableRow key={member.id}>
+                  <TableRow key={member.id || member._id}>
                     <TableCell className="pl-6">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
@@ -221,7 +250,7 @@ export default function TeamPage() {
                     </TableCell>
                     <TableCell className="text-gray-600">{member.email}</TableCell>
                     <TableCell>
-                      <Badge className={`${roleColorMap[member.role]} border-0 font-medium`}>
+                      <Badge className={`${roleColorMap[member.role as keyof typeof roleColorMap]} border-0 font-medium`}>
                         {member.role}
                       </Badge>
                     </TableCell>
@@ -242,12 +271,12 @@ export default function TeamPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
-                          <DropdownMenuItem onClick={() => setEditRole({ id: member.id, name: member.name, currentRole: member.role })}>
+                          <DropdownMenuItem onClick={() => setEditRole({ id: member.id || member._id, name: member.name, currentRole: member.role })}>
                             <Edit3 className="mr-2 h-4 w-4" />
                             Edit Role
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleToggleStatus(member.id)}>
+                          <DropdownMenuItem onClick={() => handleToggleStatus(member.id || member._id)}>
                             {member.status === "Active" ? (
                               <ToggleLeft className="mr-2 h-4 w-4 text-amber-500" />
                             ) : (
@@ -358,7 +387,7 @@ export default function TeamPage() {
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <Button onClick={() => editRole && handleRoleChange(editRole.id, editRole.currentRole)}>
+                            <Button onClick={() => editRole && handleRoleChange(editRole.id, editRole.currentRole)}>
               Save Changes
             </Button>
           </DialogFooter>

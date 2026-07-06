@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
-import { Plus, Search, MoreHorizontal, ArrowUpDown, Eye, Trash2, User, Building2, DollarSign, Target, Calendar } from "lucide-react"
+import { Plus, Search, MoreHorizontal, ArrowUpDown, Eye, Trash2, User, Building2, DollarSign, Target, Calendar, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -39,9 +39,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
-import { mockOpportunities, mockCompanies, mockTeamMembers } from "@/data/mock-data"
-import type { PipelineStage, Opportunity } from "@/types"
 import { formatCurrency, formatDate, getStatusColor } from "@/lib/utils"
+import { useAuth } from "@/contexts/auth-context"
+import type { PipelineStage, Opportunity } from "@/types"
 
 const stages: PipelineStage[] = ["Lead", "Qualification", "Discovery", "Proposal", "Negotiation", "Won", "Lost"]
 
@@ -50,18 +50,11 @@ const stageOptions = [
   ...stages.map((s) => ({ value: s, label: s })),
 ]
 
-const ownerOptions = [
-  { value: "all", label: "All Owners" },
-  ...mockTeamMembers.map((m) => ({ value: m.id, label: m.name })),
-]
-
-const customerOptions = [
-  { value: "", label: "Select customer" },
-  ...mockCompanies.map((c) => ({ value: c.id, label: c.name })),
-]
-
 export default function OpportunitiesPage() {
-  const [opportunities, setOpportunities] = useState<Opportunity[]>(mockOpportunities)
+  const [opportunities, setOpportunities] = useState<any[]>([])
+  const [companies, setCompanies] = useState<any[]>([])
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [stageFilter, setStageFilter] = useState("all")
   const [ownerFilter, setOwnerFilter] = useState("all")
@@ -70,6 +63,30 @@ export default function OpportunitiesPage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [sortField, setSortField] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
+  const { fetchWithAuth } = useAuth()
+
+  useEffect(() => {
+    Promise.all([
+      fetchWithAuth("/api/opportunities"),
+      fetchWithAuth("/api/companies"),
+      fetchWithAuth("/api/team"),
+    ]).then(([oppsData, companiesData, teamData]) => {
+      setOpportunities(oppsData)
+      setCompanies(companiesData)
+      setTeamMembers(teamData)
+    }).catch(console.error)
+    .finally(() => setLoading(false))
+  }, [])
+
+  const ownerOptions = [
+    { value: "all", label: "All Owners" },
+    ...teamMembers.map((m: any) => ({ value: m.id, label: m.name })),
+  ]
+
+  const customerOptions = [
+    { value: "", label: "Select customer" },
+    ...companies.map((c: any) => ({ value: c.id, label: c.name })),
+  ]
 
   const [form, setForm] = useState({
     name: "",
@@ -109,6 +126,8 @@ export default function OpportunitiesPage() {
   const totalValue = useMemo(() => filtered.reduce((sum, o) => sum + o.dealValue, 0), [filtered])
   const avgDealSize = useMemo(() => (filtered.length > 0 ? totalValue / filtered.length : 0), [filtered, totalValue])
 
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
+
   function toggleSort(field: string) {
     if (sortField === field) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"))
@@ -122,35 +141,47 @@ export default function OpportunitiesPage() {
     return <ArrowUpDown className="ml-1 h-3 w-3 inline opacity-50" />
   }
 
-  function handleAdd() {
-    const owner = mockTeamMembers.find((m) => m.id === form.ownerId)
-    const company = mockCompanies.find((c) => c.id === form.customerId)
-    const newOpp: Opportunity = {
-      id: `opp-${Date.now()}`,
-      name: form.name,
-      customer: company?.name || "",
-      customerId: form.customerId,
-      dealValue: Number.parseFloat(form.dealValue) || 0,
-      stage: form.stage,
-      owner: form.ownerId,
-      expectedCloseDate: form.expectedCloseDate ? new Date(form.expectedCloseDate).toISOString() : new Date().toISOString(),
-      probability: form.probability,
-      notes: form.notes,
-      createdAt: new Date().toISOString(),
+  async function handleAdd() {
+    try {
+      const owner = teamMembers.find((m: any) => m.id === form.ownerId)
+      const company = companies.find((c: any) => (c.id || c._id) === form.customerId)
+      const body = {
+        name: form.name,
+        customer: company?.name || "",
+        customerId: form.customerId,
+        dealValue: Number.parseFloat(form.dealValue) || 0,
+        stage: form.stage,
+        owner: form.ownerId,
+        expectedCloseDate: form.expectedCloseDate ? new Date(form.expectedCloseDate).toISOString() : new Date().toISOString(),
+        probability: Number(form.probability) || 0,
+        notes: form.notes,
+      }
+      const created = await fetchWithAuth("/api/opportunities", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+      setOpportunities((prev) => [created, ...prev])
+    } catch (e) {
+      console.error("Failed to add opportunity", e)
     }
-    setOpportunities((prev) => [newOpp, ...prev])
     setDialogOpen(false)
     setForm({ name: "", customerId: "", dealValue: "", stage: "Lead", ownerId: "", expectedCloseDate: "", probability: 0, notes: "" })
   }
 
-  function handleDelete(id: string) {
-    setOpportunities((prev) => prev.filter((o) => o.id !== id))
+  async function handleDelete(id: string) {
+    try {
+      await fetchWithAuth(`/api/opportunities/${id}`, { method: "DELETE" })
+      setOpportunities((prev) => prev.filter((o) => (o.id || o._id) !== id))
+    } catch (e) {
+      console.error("Failed to delete opportunity", e)
+    }
     setDeleteDialogOpen(false)
     setDeleteTarget(null)
   }
 
   function getOwnerName(ownerId: string) {
-    const member = mockTeamMembers.find((m) => m.id === ownerId)
+    const member = teamMembers.find((m: any) => m.id === ownerId)
     return member?.name || ownerId
   }
 
@@ -273,7 +304,7 @@ export default function OpportunitiesPage() {
                 </TableRow>
               ) : (
                 filtered.map((opp) => (
-                  <TableRow key={opp.id}>
+                  <TableRow key={opp.id || opp._id}>
                     <TableCell className="font-medium text-gray-900">{opp.name}</TableCell>
                     <TableCell>{opp.customer}</TableCell>
                     <TableCell className="text-right font-medium">{formatCurrency(opp.dealValue)}</TableCell>
@@ -298,7 +329,7 @@ export default function OpportunitiesPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <Link href={`/opportunities/${opp.id}`}>
+                          <Link href={`/dashboard/opportunities/${opp.id || opp._id}`}>
                             <DropdownMenuItem className="gap-2 cursor-pointer">
                               <Eye className="h-4 w-4" />
                               View
@@ -307,7 +338,7 @@ export default function OpportunitiesPage() {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             className="gap-2 text-red-600 cursor-pointer"
-                            onClick={() => { setDeleteTarget(opp.id); setDeleteDialogOpen(true) }}
+                            onClick={() => { setDeleteTarget(opp.id || opp._id); setDeleteDialogOpen(true) }}
                           >
                             <Trash2 className="h-4 w-4" />
                             Delete
@@ -368,7 +399,7 @@ export default function OpportunitiesPage() {
                 <Select value={form.ownerId} onValueChange={(v) => setForm((f) => ({ ...f, ownerId: v }))}>
                   <SelectTrigger id="owner"><SelectValue placeholder="Select owner" /></SelectTrigger>
                   <SelectContent>
-                    {mockTeamMembers.map((m) => (
+                    {teamMembers.map((m: any) => (
                       <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                     ))}
                   </SelectContent>

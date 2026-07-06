@@ -1,13 +1,13 @@
 "use client"
 
-import { useMemo } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import {
   ArrowLeft, Globe, Mail, Phone, MapPin, Building2, Users, Target,
-  Calendar, DollarSign, Clock, FileText, StickyNote, Briefcase
+  Calendar, DollarSign, Clock, FileText, StickyNote, Briefcase, Loader2
 } from "lucide-react"
-import { mockCompanies, mockContacts, mockOpportunities, mockActivities } from "@/data/mock-data"
+import { useAuth } from "@/contexts/auth-context"
 import { formatDate, formatCurrency, getInitials, cn } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -64,34 +64,38 @@ const activityColorMap: Record<string, string> = {
 
 export default function CompanyDetailPage() {
   const params = useParams()
-  const company = useMemo(
-    () => mockCompanies.find((c) => c.id === params.id),
-    [params.id]
-  )
+  const id = params.id as string
+  const [company, setCompany] = useState<any>(null)
+  const [companyContacts, setCompanyContacts] = useState<any[]>([])
+  const [companyOpportunities, setCompanyOpportunities] = useState<any[]>([])
+  const [companyActivities, setCompanyActivities] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { fetchWithAuth } = useAuth()
 
-  const companyContacts = useMemo(
-    () => mockContacts.filter((c) => c.company === company?.name),
-    [company]
-  )
-
-  const companyOpportunities = useMemo(
-    () => mockOpportunities.filter((o) => o.customerId === company?.id),
-    [company]
-  )
-
-  const companyActivities = useMemo(
-    () =>
-      mockActivities
-        .filter(
-          (a) =>
-            a.relatedTo === company?.id ||
-            companyContacts.some((c) => a.relatedTo === c.id) ||
-            companyOpportunities.some((o) => a.relatedTo === o.id)
+  useEffect(() => {
+    Promise.all([
+      fetchWithAuth(`/api/companies/${id}`),
+      fetchWithAuth("/api/contacts"),
+      fetchWithAuth("/api/opportunities"),
+      fetchWithAuth("/api/activities"),
+    ]).then(([companyData, contactsData, opportunitiesData, activitiesData]) => {
+      setCompany(companyData)
+      const filteredContacts = contactsData.filter((c: any) => c.company === companyData?.name)
+      const filteredOpps = opportunitiesData.filter((o: any) => o.customerId === companyData?.id)
+      const filteredActivities = activitiesData
+        .filter((a: any) =>
+          a.relatedTo === companyData?.id ||
+          filteredContacts.some((c: any) => a.relatedTo === c.id) ||
+          filteredOpps.some((o: any) => a.relatedTo === o.id)
         )
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    [company, companyContacts, companyOpportunities]
-  )
+        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      setCompanyContacts(filteredContacts)
+      setCompanyOpportunities(filteredOpps)
+      setCompanyActivities(filteredActivities)
+    }).catch(console.error).finally(() => setLoading(false))
+  }, [id])
 
+  if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
   if (!company) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
@@ -269,9 +273,9 @@ export default function CompanyDetailPage() {
                   </TableHeader>
                   <TableBody>
                     {companyContacts.map((contact) => (
-                      <TableRow key={contact.id}>
+                      <TableRow key={contact.id || contact._id}>
                         <TableCell className="pl-6">
-                          <Link href={`/contacts/${contact.id}`} className="flex items-center gap-3 hover:underline">
+                          <Link href={`/dashboard/contacts/${contact.id || contact._id}`} className="flex items-center gap-3 hover:underline">
                             <Avatar className="h-7 w-7">
                               <AvatarFallback className="text-xs">{getInitials(`${contact.firstName} ${contact.lastName}`)}</AvatarFallback>
                             </Avatar>
@@ -324,7 +328,7 @@ export default function CompanyDetailPage() {
                   </TableHeader>
                   <TableBody>
                     {companyOpportunities.map((opp) => (
-                      <TableRow key={opp.id}>
+                      <TableRow key={opp.id || opp._id}>
                         <TableCell className="pl-6 font-medium text-gray-900">{opp.name}</TableCell>
                         <TableCell>
                           <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium", stageColorMap[opp.stage] || "bg-gray-100 text-gray-800")}>
@@ -364,7 +368,7 @@ export default function CompanyDetailPage() {
                   {companyActivities.map((activity, idx) => {
                     const Icon = activityIconMap[activity.type] || FileText
                     return (
-                      <div key={activity.id} className="relative flex gap-4 pb-6 last:pb-0">
+                      <div key={activity.id || activity._id} className="relative flex gap-4 pb-6 last:pb-0">
                         {idx < companyActivities.length - 1 && (
                           <div className="absolute left-[17px] top-8 bottom-0 w-px bg-gray-200" />
                         )}
